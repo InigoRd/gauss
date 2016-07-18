@@ -1,0 +1,638 @@
+{% extends "base.html" %}
+{% load gproject_extras %}
+
+{% block head %}
+    <link rel="stylesheet" href="/static/css/gauss_gantt.css">
+    <style>
+        .gtask {
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .gtask_bar {
+            background-color: green;
+        {#            margin-left: -5px#}
+        }
+    </style>
+{% endblock %}
+
+{% block contenido %}
+    <input type="hidden" name="action" id="action" class="input_serializable" value="">
+    <input type="hidden" name="gtask_id" id="gtask_id" class="input_serializable" value="">
+    <input type="hidden" name="baseline" id="baseline" value="{{ gbaseline.id }}">
+    <input type="hidden" name="gtask_link" id="gtask_link" value="">
+    <input type="hidden" name="line_link_x" id="line_link_x" value="">
+    <input type="hidden" name="line_link_y" id="line_link_y" value="">
+    <input type="hidden" name="task_origin" id="task_origin" value="">
+    <input type="hidden" name="task_origin_type" id="task_origin_type" value="">
+    <div class="row" id="row_slider">
+        <div class="columns large-12">
+            <div class="slider" data-slider data-initial-start="{{ gbaseline.left_side }}" data-end="12" id="num_cols"
+                 data-id="{{ gbaseline.id }}">
+                <span class="slider-handle" data-slider-handle role="slider" tabindex="1"></span>
+                <span class="slider-fill" data-slider-fill></span>
+                <input id="left_num_cols" type="hidden">
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="gantt_schedule">
+        <div class="columns small-{{ gbaseline.left_side }} left-pane">
+            <div class="row" id="left-header" style="margin-left: 0px;">
+                <div class="row" id="column_headers" style="margin-left:0;position: relative;"></div>
+                <div class="row" style="margin-left: 0px;">&nbsp;</div>
+            </div>
+
+            <div class="row" id="task_list" style="margin-left: 0px;position:relative;white-space: nowrap;">
+                <div id="rowl0"></div>
+            </div>
+            <div class="row">
+                <div class="columns small-12">
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="columns small-{{ gbaseline.right_side }} right-pane">
+            <div class="row" id="right-header" style="margin-left: 0px;">
+                <div class="row" id="tl_months" style="margin-left: 0px;"></div>
+                <div class="row" id="tl_days" style="margin-left: 0px;"></div>
+            </div>
+
+            <div class="row" id="task_bars" style="margin-left: 0px;position:relative;white-space: nowrap;">
+                <div id="rowr0"></div>
+            </div>
+            <div class="row">
+                <div class="columns small-12">
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="large reveal" id="gtask_data" data-reveal data-close-on-click="false">
+        <h4 class="app_title">Parámetros de la tarea</h4>
+
+        <ul class="tabs" data-tabs id="gtask-tabs">
+            <li class="tabs-title is-active"><a href="#general_tab" aria-selected="true">General</a></li>
+            <li class="tabs-title"><a href="#predecessors_tab">Predecessors</a></li>
+            <li class="tabs-title"><a href="#hresources_tab">Human resources</a></li>
+            <li class="tabs-title"><a href="#mresources_tab">Material resources</a></li>
+            <li class="tabs-title"><a href="#constraints_tab">Constraints</a></li>
+            <li class="tabs-title"><a href="#notes_tab">Notes</a></li>
+        </ul>
+
+        <div class="tabs-content" data-tabs-content="gtask-tabs">
+            <div class="tabs-panel is-active" id="general_tab">
+                <div class="row">
+                    <div class="columns large-9">
+                        <label>Nombre <span id="name-check" style="color:red;display: none;"><i class="fa fa-check"></i></span></label>
+                        <input type="text" name="name" id="gtask_name" value="" data-id="" class="gantt_gtask_data">
+                        </label>
+                    </div>
+                    <div class="columns large-3">
+                        <label> Duración estimada <span class="time-check" id="estimate-check"
+                                                        style="color:red;display: none;"><i
+                                class="fa fa-check"></i></span></label>
+                        <input title="Duración estimada de  la tarea" type="text" name="estimate_time"
+                               id="estimate_time_days"
+                               class="change_time gantt_gtask_data"
+                               value="" data-id="" data-type="estimate">
+                        </label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="columns large-4">
+                        <label>Duración optimista <span class="time-check" id="optimistic-check"
+                                                        style="color:red;display: none;"><i
+                                class="fa fa-check"></i></span></label>
+                        <input title="Duración optimista de  la tarea" type="text" name="opmistic_time"
+                               id="optimistic_time"
+                               class="change_time gantt_gtask_data"
+                               value="" data-id=""
+                               data-type="optimistic">
+                        </label>
+                    </div>
+                    <div class="columns large-4">
+                        <label>Duración probable <span class="time-check" id="likely-check"
+                                                       style="color:red;display: none;"><i
+                                class="fa fa-check"></i></span></label>
+                        <input title="Duración pesimista de  la tarea" type="text" name="likely_time" id="likely_time"
+                               class="change_time gantt_gtask_data" value="" data-id=""
+                               data-type="likely">
+                        </label>
+                    </div>
+                    <div class="columns large-4">
+                        <label>Duración pesimista <span class="time-check" id="pessimistic-check"
+                                                        style="color:red;display: none;"><i
+                                class="fa fa-check"></i></span></label>
+                        <input title="Duración pesimista de  la tarea" type="text" name="pessimistic_time"
+                               id="pessimistic_time"
+                               class="change_time gantt_gtask_data"
+                               value="" data-id=""
+                               data-type="pessimistic">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="tabs-panel" id="predecessors_tab">
+                <div class="row">
+                    <div class="columns large-12">
+                        <label>Predecesoras <span id="predecessors-check" style="color:red;display: none;"><i
+                                class="fa fa-check"></i></span></label>
+                        <select class="predecessors input_serializable" id="id_predecessors" name="predecessors"
+                                multiple data-id="{{ gtask.id }}">
+                        </select>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="tabs-panel" id="hresources_tab">
+                {#<div class="row">#}
+                {#    <div class="columns large-12">#}
+                {#        <label>Recursos#}
+                {#            <select class="gresources" id="id_gresources" name="gresources" multiple>#}
+                {#            </select>#}
+                {#        </label>#}
+                {#    </div>#}
+                {#</div>#}
+            </div>
+            <div class="tabs-panel" id="mresources_tab">
+                <p>hola3</p>
+            </div>
+            <div class="tabs-panel" id="constraints_tab">
+                <p>hola4</p>
+            </div>
+            <div class="tabs-panel" id="notes_tab">
+                <div class="row">
+                    <div class="columns large-12">
+                        <label>Observaciones
+                            <textarea class="notes" id="id_notes" name="notes" rows="5"></textarea>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="close-button" data-close aria-label="Close reveal" type="button">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="reveal" id="reveal_delete_link" data-reveal data-id="{{ gbaseline.id }}">
+        <h2><i class="fa fa-warning"></i> Borrar enlace </h2>
+        <p>Si pulsas sobre el botón <span class="info label">Borrar</span>, el enlace entre las dos tareas será
+            eliminado.</p>
+        <div class="button-group">
+            <a class="button" id="gtask_link_borrar">Borrar</a>
+            <a class="button" id="gtask_link_cancelar">Cancelar</a>
+        </div>
+    </div>
+
+    <div class="reveal" id="reveal_want_create_baseline" data-reveal>
+        <h2><i class="fa fa-question-circle"></i> Creación de una nueva baseline </h2>
+        <p>Si pulsas sobre el botón <span class="info label">Aceptar</span>, se creará una nueva baseline del
+            proyecto tomando como base la actual.</p>
+        <div class="button-group">
+            <a class="button" id="gtask_gbaseline_create">Aceptar</a>
+            <a class="button" id="gtask_gbaseline_cancel">Cancelar</a>
+        </div>
+    </div>
+
+    <div class="reveal" id="reveal_creating_baseline" data-reveal data-close-on-esc="false" data-close-on-click="false">
+        <h2><i class="fa fa-spinner fa-pulse fa-fw"></i> Creando una nueva baseline </h2>
+        <p>Este proceso puede tardar unos minutos en realizarse. Por favor, se paciente.</p>
+        <p>Este mensaje desaparecerá cuando el trabajo esté completamente terminado.</p>
+    </div>
+
+    <div class="menu_header_wrapper">
+        <div class="menu_header" id="colmenu">
+            <ul>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-align-center"><i
+                        class="fa fa-align-center"></i> Texto centrado </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-align-left"><i
+                        class="fa fa-align-left"></i> Texto izquierda </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-align-right"><i
+                        class="fa fa-align-right"></i> Texto derecha </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-move-right"><i
+                        data-direction="right" class="fa fa-arrow-right"></i> Mover columna (derecha) </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-move-left"><i
+                        data-direction="left" class="fa fa-arrow-left"></i> Mover columna (izquierda) </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-remove"><i
+                        class="fa fa-trash"></i> Borrar columna </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_submenu" data-direction="left"
+                                                     data-action="gcolumn-insert-left"><i
+                        class="fa fa-chevron-left"></i> Insertar columna (izquierda) </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_submenu" data-direction="right"
+                                                     data-action="gcolumn-insert-right"><i
+                        class="fa fa-chevron-right"></i> Insertar columna (derecha) </a></li>
+            </ul>
+        </div>
+        <div class="menu_header" id="colsubmenu">
+            <ul>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="estimate_time_days"><i
+                        class="fa fa-asterisk"></i> Estimate time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="optimistic_time"><i
+                        class="fa fa-asterisk"></i> Optimistic time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="likely_time"><i
+                        class="fa fa-asterisk"></i> Likely time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="pessimistic_time"><i
+                        class="fa fa-asterisk"></i> Pessimistic time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="early_start_date"><i
+                        class="fa fa-asterisk"></i> Early start (date)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="predecessors"><i
+                        class="fa fa-asterisk"></i> Predecessors</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="early_start_datetime"><i
+                        class="fa fa-asterisk"></i> Early start (datetime)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="last_finish_date"><i
+                        class="fa fa-asterisk"></i> Last Finish (date)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="last_finish_datetime"><i
+                        class="fa fa-asterisk"></i> Last Finish (datetime)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="gtask_name"><i
+                        class="fa fa-asterisk"></i> Task name</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="total_float"><i
+                        class="fa fa-asterisk"></i> Total float</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="free_float"><i
+                        class="fa fa-asterisk"></i> Free float</a></li>
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block final %}
+    <script src="/static/js/moment-with-locales.min.js"></script>
+    <script src="/static/js/setOps.js"></script>
+    <script src="/static/js/gantt.js"></script>
+    <script>
+        CKEDITOR.disableAutoInline = true;
+        moment.locale('es');
+        var start = new Date().getTime();
+        var gp = GAUSSPROJECT.parse_data({{ jgprojects|safe }}, {{ jgbaselines|safe }}, {{ jgtasks|safe }}, {{ jgtask_links|safe }}, {{ jgcolumns|safe }});
+        var end = new Date().getTime();
+        var time = end - start;
+        console.log('Execution time: ' + time);
+
+        gp_buttons({random: 'show', plus: 'show', 'code-fork': 'show', 'plus-circle': 'show'});
+
+        $('.plus-circle_button').click(function (e) {
+            e.preventDefault();
+            $('#reveal_want_create_baseline').foundation('open');
+        });
+        $('#gtask_gbaseline_cancel').click(function (e) {
+            e.preventDefault();
+            $('#reveal_want_create_baseline').foundation('close');
+        });
+        $('#gtask_gbaseline_create').click(function (e) {
+            e.preventDefault();
+            $('#reveal_want_create_baseline').foundation('close');
+            $('#reveal_creating_baseline').foundation('open');
+        });
+
+        $('.random_button').click(function (e) {
+            e.preventDefault();
+            GAUSSPROJECT.toggle_glinks();
+        });
+
+        $('.plus_button').click(function (e) {
+            e.preventDefault();
+            var $checked_gtasks = $('.check_gtask:checked');
+            if ($checked_gtasks.length > 0) {
+                $checked_gtasks.each(function () {
+                    GAUSSPROJECT.insert_task($(this).val());
+                });
+            } else {
+                GAUSSPROJECT.add_task();
+            }
+        });
+
+        $('.arrow-up_button').click(function (e) {
+            e.preventDefault();
+            var $checked_gtasks = $('.check_gtask:checked');
+            $checked_gtasks.each(function () {
+                var previous = $(this).parent().parent().prev().find('.check_gtask').val();
+                var current = $(this).val();
+                GAUSSPROJECT.moveup_gtask(previous, current);
+            });
+        });
+
+        $('.arrow-down_button').click(function (e) {
+            e.preventDefault();
+            var $checked_gtasks = $('.check_gtask:checked');
+            $checked_gtasks.each(function () {
+                var next = $(this).parent().parent().next().find('.check_gtask').val();
+                var current = $(this).val();
+                GAUSSPROJECT.movedown_gtask(next, current);
+            });
+        });
+
+        $('.trash_button').click(function (e) {
+            e.preventDefault();
+            var pk_gtasks = [];
+            $('.check_gtask:checked').each(function () {
+                var pk = $(this).val();
+                pk_gtasks.push(parseInt(pk));
+            });
+            GAUSSPROJECT.remove_gtasks(pk_gtasks);
+            gp_buttons({
+                sliders: 'hide',
+                indent: 'hide',
+                dedent: 'hide',
+                trash: 'hide',
+                'arrow-up': 'hide',
+                'arrow-down': 'hide',
+                pencil: 'hide'
+            });
+        });
+
+        $('.dedent_button').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'dedent', gtasks: $('.check_gtask:checked').serialize()},
+                    function (resp) {
+                        $('#gantt_schedule').html(resp);
+                    });
+        });
+
+        $('.indent_button').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'indent', gtasks: $('.check_gtask:checked').val()},
+                    function (resp) {
+                        $('#gantt_schedule').html(resp);
+                    });
+        });
+
+
+        $('body').on('closed.zf.reveal', '#gtask_data', function (e) {
+            var id = $(this).data('id');
+            GAUSSPROJECT.gtask_edited = null;
+            {#            $.post("/gantt_ajax/", {action: 'gantt_schedule', id: id},#}
+            {#                    function (resp) {#}
+            {#                        parse_gtasks(resp.tasks);#}
+            {#                        setTimeout(function () {#}
+            {#                            parse_glinks(resp.links);#}
+            {#                        }, 1000)#}
+            {#                    }, 'json');#}
+        });
+
+        {#        $('body').on('click', '.gtask', function (e) {#}
+
+        $('#gtask-tabs').on('change.zf.tabs', function () {
+            if ($('#predecessors_tab:visible').length) {
+                $('#id_predecessors').select2();
+            }
+        });
+
+        $('body').on('change', '#id_predecessors', function (e) {
+            e.preventDefault();
+            GAUSSPROJECT.change_predecessors($(this).val());
+        });
+
+{#        You can edit a gtask throw two ways: double click on the row where the bar is drawn or clicking in #}
+{#                the pencil icon (only one gtask must be checked)#}
+
+        $(".bar_side").dblclick(function () {
+            var id = $(this).data('id');
+            $('#gtask_data').foundation('open');
+            GAUSSPROJECT.edit_gtask(id);
+            if ($('#predecessors_tab:visible').length) {
+                $('#id_predecessors').select2();
+            }
+        }).children().dblclick(function (e) {
+            return false;
+        });
+
+        $('.pencil_button').click(function (e) {
+            e.preventDefault();
+            $('#gtask_data').foundation('open');
+            var id = $('.check_gtask:checked').val();
+            GAUSSPROJECT.edit_gtask(id);
+            if ($('#predecessors_tab:visible').length) {
+                $('#id_predecessors').select2();
+            }
+        });
+
+        $('body').on('blur', '.gantt_gtask_data', function () {
+            GAUSSPROJECT.update_cell(0, $(this).attr('id'), $(this).val());
+        });
+
+        $('body').on('moved.zf.slider', '#num_cols', function (e) {
+            var id = $(this).data('id');
+            var left = parseInt($('#left_num_cols').val());
+            var right = 12 - left;
+            if (GAUSSPROJECT.gproject.active_gbaseline.fields.columns != right) {
+                GAUSSPROJECT.gproject.active_gbaseline.fields.columns = right;
+                $.post("/gantt_ajax/", {action: 'num_cols', id: id, right: right});
+                if (left > 0) {
+                    $('.left-pane').alterClass('small-* medium-* large-*').addClass('small-' + left + ' medium-' + left + ' large-' + left).show();
+                    $('.left-pane').alterClass('small-*').addClass('small-' + left).show();
+                } else {
+                    $('.left-pane').hide();
+                }
+                if (right > 0) {
+                    $('.right-pane').alterClass('small-* medium-* large-*').addClass('small-' + right + ' medium-' + right + ' large-' + right).show();
+                    $('.right-pane').alterClass('small-*').addClass('small-' + right).show();
+                } else {
+                    $('.right-pane').hide();
+                }
+            }
+        });
+
+        $('body').on('click', '.gantt_task_link', function (e) {
+            e.preventDefault();
+            $('#gtask_link').val($(this).data('id'));
+            $('#reveal_delete_link').foundation('open');
+        });
+
+        $('body').on('click', '#gtask_link_borrar', function (e) {
+            e.preventDefault();
+            var id = $('#gtask_link').val();
+            GAUSSPROJECT.remove_glink(id);
+            $('#reveal_delete_link').foundation('close');
+        });
+
+        $('body').on('click', '#gtask_link_cancelar', function (e) {
+            e.preventDefault();
+            $('#reveal_delete_link').foundation('close');
+        });
+
+
+        {# ################################################################################################# #}
+        {# These lines are in order to get dinamic glink between tasks #}
+
+
+        {#    ##################################################################################}
+
+        $('body').on('change', '.check_gtask', function (e) {
+            e.preventDefault();
+            var id = $(this).val();
+            {#            var id = $(this).parent().parent().data('id');#}
+            if ($('#rowl' + id).hasClass('gtask_selected')) {
+                $('#rowl' + id).removeClass('gtask_selected');
+                $('#rowr' + id).removeClass('gtask_selected');
+            } else {
+                $('#rowl' + id).addClass('gtask_selected');
+                $('#rowr' + id).addClass('gtask_selected');
+            }
+
+            var numberOfChecked = $('.check_gtask:checked').length;
+            if (numberOfChecked > 0) {
+                gp_buttons({
+                    sliders: 'show',
+                    indent: 'show',
+                    dedent: 'show',
+                    trash: 'show',
+                    'arrow-up': 'show',
+                    'arrow-down': 'show',
+                    pencil: 'hide'
+                });
+                if (numberOfChecked == 1) {
+                    gp_buttons({pencil: 'show'});
+                }
+            } else {
+                gp_buttons({
+                    sliders: 'hide',
+                    indent: 'hide',
+                    dedent: 'hide',
+                    trash: 'hide',
+                    'arrow-up': 'hide',
+                    'arrow-down': 'hide',
+                    pencil: 'hide'
+                });
+            }
+        });
+
+
+        {# *******************************  #}
+        {# The following lines detect if a gcolumn width is changed and they change all the cells of the same column #}
+        {# *******************************  #}
+        $('body').on('mousedown', '.gantt_list_column', function (event) {
+            GAUSSPROJECT.selected_gcolumn = $(this);
+            $('.menu_header').hide();
+            GAUSSPROJECT.initial_value = GAUSSPROJECT.selected_gcolumn.css('width');
+            GAUSSPROJECT.final_value = GAUSSPROJECT.initial_value;
+        });
+
+        $('body').on('mousemove', '.gantt_list_column', function (event) {
+            if (GAUSSPROJECT.selected_gcolumn) {
+                var w = GAUSSPROJECT.selected_gcolumn.css('width');
+                var column = GAUSSPROJECT.selected_gcolumn.data('colpk');
+                $('.col' + column).css('width', w);
+                GAUSSPROJECT.final_value = w;
+            }
+        });
+
+        $('body').on('mouseup', '.gantt_list_column', function (event) {
+            var w = parseInt(GAUSSPROJECT.selected_gcolumn.css('width'));
+            var colpk = GAUSSPROJECT.selected_gcolumn.data('colpk');
+            if (GAUSSPROJECT.initial_value != GAUSSPROJECT.final_value) {
+                GAUSSPROJECT.update_server({action: 'gcolumn_width', colpk: colpk, width: w});
+            }
+            if ($(this).hasClass('gantt_header_column') && GAUSSPROJECT.initial_value == GAUSSPROJECT.final_value) {
+                $('#colmenu')
+                        .css('left', $(this).offset().left)
+                        .css('top', $(this).offset().top + 26)
+                        .css('min-width', w)
+                        .show()
+                        .css("z-index", 400);
+            }
+        });
+
+        $('body').on('mouseleave', '.menu_header_wrapper', function (e) {
+            $('.menu_header').hide();
+            GAUSSPROJECT.selected_gcolumn = null;
+        });
+
+        $('body').on('mouseover', '.item_menu_submenu', function (e) {
+            GAUSSPROJECT.insert_move_gcolumn_at = $(this).data('direction');
+            var w = parseInt($(this).css('width'));
+            $('#colsubmenu')
+                    .css('left', $(this).offset().left + w - 20)
+                    .css('top', $(this).offset().top - 100)
+                    .css('min-width', w)
+                    .show()
+                    .css("z-index", 400);
+        });
+        $('body').on('mouseover', '.item_main_menu', function (e) {
+            $('#colsubmenu').hide();
+            GAUSSPROJECT.insert_move_gcolumn_at = 'right';
+        });
+
+        {# *******************************  #}
+        {# End of code lines to change width of a column and menu header #}
+        {# *******************************  #}
+
+
+        $('body').on('blur', '.gantt_list_column', function () {
+            var gtaskpk = $(this).data('id');
+            $('#rowl' + gtaskpk).removeClass('gtask_focused');
+            $('#rowr' + gtaskpk).removeClass('gtask_focused');
+            var value = $(this).text();
+            var gcolpk = $(this).data('colpk');
+            var start = new Date().getTime();
+            if (gtaskpk && gcolpk && value) {
+                GAUSSPROJECT.update_cell(gtaskpk, gcolpk, value);
+            }
+            var end = new Date().getTime();
+            var time = end - start;
+            console.log('Execution total time: ' + time);
+        });
+
+        $('body').on('focus', '.gantt_list_column', function () {
+            $(this).selectText();
+            var id = $(this).data('id');
+            $('#rowl' + id).addClass('gtask_focused');
+            $('#rowr' + id).addClass('gtask_focused');
+        });
+
+        $('body').on('keydown', '.gantt_list_column', function (e) {
+            var colpk = parseInt($(this).data('colpk'));
+            switch (e.which) {
+                case 38: // up
+                    var cell = $(this).parent().prev().find('[data-colpk=' + colpk + ']');
+                    if (cell.length > 0) {
+                        cell.focus();
+                    } else {
+                        console.log('There is not a task above');
+                    }
+                    break;
+                case 40: // down
+                    var cell = $(this).parent().next().children('[data-colpk=' + colpk + ']');
+                    if (cell.length > 0) {
+                        cell.focus();
+                    } else {
+                        GAUSSPROJECT.add_task();
+                    }
+                    break;
+                default:
+                    return;
+            }
+            e.preventDefault(); // prevent when up place caret at beginning
+        });
+
+        $('body').keydown(function (e) {
+            if (e.which == 27) {
+                e.preventDefault();
+                $('#colmenu').hide();
+                $('#colsubmenu').hide();
+            }
+        });
+    </script>
+{% endblock %}

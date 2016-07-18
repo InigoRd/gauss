@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+    <form action="" method="post" enctype="multipart/form-data" id="{{ formname }}" name="{{ formname }}">
+        {% csrf_token %}
+
+        <div class="">
+            <h4 style="text-align: center;color: #008CBA;"><strong> Carga masiva de socios</strong></h4>
+        </div>
+
+
+        <div class="panel callout">
+            <div class="row">
+                <div class="large-4 columns">
+                    Archivo CSV (utf-8): <strong>{{ gauser_extra.gauser.get_full_name }}</strong>
+                </div>
+                <div class="large-8 columns">
+                    <input type="file" name="file_masivo" id="file_masivo"/></strong>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="row">
+                <div class="large-12">
+                    <p>Un archivo csv es un fichero de texto con tantas filas como socios desees cargar.
+                        Cada fila contiene la información de un socio donde cada uno de los campos de información viene
+                        separada por un ";". Observa que el fichero está definiendo una tabla en la que las columnas
+                        vienen separadas por el ";".
+                    </p>
+
+                    <p>El archivo a cargar debe estar codificado en utf-8 y la primera fila define los nombres de los
+                        campos de información sobre el usuario. No es necesario que los campos estén en un determinado
+                        orden, pero sí que tengan los siguientes nombres:</p>
+
+                    <p><strong>id_socio</strong>, <strong>id_organizacion</strong>, <strong>nombre</strong>, <strong>apellidos</strong>,
+                        <strong>dni</strong>, <strong>telefono_fijo</strong>, <strong>telefono_movil</strong>, <strong>direccion</strong>,
+                        <strong>cp,
+                            localidad</strong>, <strong>provincia</strong>, <strong>sexo</strong>,
+                        <strong>email</strong>, <strong>nacimiento</strong>, <strong>fecha_alta</strong>, <strong>observaciones</strong>,
+                        <strong>iban,
+                            nombre_tutor1</strong>, <strong>apellidos_tutor1</strong>, <strong>dni_tutor1</strong>,
+                        <strong>telefono_fijo_tutor1</strong>, <strong>telefono_movil_tutor1</strong>, <strong>
+                            direccion_tutor1</strong>, <strong>cp_tutor1</strong>, <strong>localidad_tutor1</strong>,
+                        <strong>provincia_tutor1</strong>, <strong>sexo_tutor1</strong>, <strong>email_tutor1,
+                            nacimiento_tutor1</strong>, <strong>fecha_alta_tutor1</strong>,
+                        <strong>observaciones_tutor1</strong>, <strong>iban_tutor1</strong>, <strong>
+                            nombre_tutor2</strong>, <strong>apellidos_tutor2</strong>, <strong>dni_tutor2</strong>,
+                        <strong>telefono_fijo_tutor2</strong>, <strong>telefono_movil_tutor2</strong>, <strong>
+                            direccion_tutor2</strong>, <strong>cp_tutor2</strong>, <strong>localidad_tutor2</strong>,
+                        <strong>provincia_tutor2</strong>, <strong>sexo_tutor2</strong>, <strong>email_tutor1,
+                            nacimiento_tutor2</strong>, <strong>fecha_alta_tutor2</strong>,
+                        <strong>observaciones_tutor2</strong>, <strong>iban_tutor2</strong>.
+                    </p>
+
+                    <p>Estos campos deben estar escritos de la forma indicada, es decir en minúsculas y sin acentos.
+                        Si fichero contuviera más columnas, GAUSS no las tendrá en cuenta.</p>
+
+                    <p>Los siguientes campos son obligatorios para el socio: id_socio, nombre, apellidos, nacimiento,
+                        sexo, iban.
+                    </p>
+
+                    <p>Los siguientes campos son obligatorios para el tutor: nombre, apellidos, dni, sexo.
+                    </p>
+                    <ul>
+                        <li><strong>id_socio</strong>: Conjunto de caracteres alfanuméricos que identifican al socio
+                            dentro de la asociación. Ej. L23/345
+                        </li>
+                        <li><strong>id_organizacion</strong>: Conjunto de caracteres alfanuméricos que identifican al
+                            socio dentro de la organización que contiene a la propia asociación. Ej. ESAPA4567R
+                        </li>
+                        <li><strong>nombre</strong>: Nombre del socio. Ej. Eduardo</li>
+                        <li><strong>apellidos</strong>: Apellidos del socio. Ej. Martínez Ochoa</li>
+                        <li><strong>dni</strong>: Número del documento nacional de identidad.</li>
+                        <li><strong>telefono_fijo</strong>: Teléfono fijo del socio.</li>
+                        <li><strong>telefono_movil</strong>: Teléfono móvil del socio.</li>
+                        <li><strong>direccion</strong>: Dirección postal del socio.</li>
+                        <li><strong>localidad</strong>: Localidad de residencia del socio.</li>
+                        <li><strong>cp</strong>: Código postal del socio.</li>
+                        <li><strong>provincia</strong>: Provincia de residencia del socio.</li>
+                        <li><strong>sexo</strong>: Sexo del socio. Este campo debe ser H o M.</li>
+                        <li><strong>email</strong>: Dirección de correo electrónico del socio.</li>
+                        <li><strong>nacimiento</strong>: Fecha de nacimiento dd/mm/aaaa. Ej. 27/07/2001</li>
+                        <li><strong>fecha_alta</strong>: Fecha en el que entró en la asociación dd/mm/aaaa. Ej.
+                            18/10/2013
+                        </li>
+                        <li><strong>observaciones</strong>: Información relevante sobre el socio que se desee guardar.
+                        </li>
+                        <li><strong>iban</strong>: Número de identificación bancaria al que se cargarán las cuotas. Ej.
+                            ES3420451235678921002311
+                        </li>
+                    </ul>
+                    <p>Los campos terminados en <strong>_tutor1</strong> y <strong>_tutor2</strong> son similares
+                        a los del socio, pero hacen referencia a sus tutores legales.</p>
+
+                    <p>Si el socio es menor de edad es necesario que estén definidos los datos de al menos uno de los
+                        tutores legales del socio.</p>
+
+                    <p>Estos datos pueden estar cargados en una hoja de cálculo (por ejemplo Excel, y cada dato se
+                        almacena en una columna). Posteriormente dicho archivo puede guardarse como "csv" utilizando
+                        el "Guardar como" y seleccionando codificación utf-8.</p>
+
+                    <p>Al cargar los usuarios se comprueba en primer lugar el identificador del usuario (id_socio).
+                        En el caso de que exista ya un usuario con ese identificador no se modificarán
+                        los datos que ya están almacenados en GAUSS. Es decir, la carga masiva de usuarios a través de
+                        este
+                        módulo sólo sirve para crear nuevos usuarios.</p>
+                </div>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
+
+
+{% block final %}
+    <script>
+
+
+        $('#check_sign').click(function (e) {
+            e.preventDefault();
+            if (!($(this).hasClass('disabled'))) {
+                $('#action').val('aceptar');
+                document.{{formname}}.submit();
+            }
+        });
+
+        $('#file_masivo').change(function () {
+            habilita(['s_check']);
+        });
+
+    </script>
+{% endblock %}

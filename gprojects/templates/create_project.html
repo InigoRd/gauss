@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{#{% load my_templatetags %}#}
+
+{% block contenido %}
+    <h4 class="app_title">Datos del nuevo proyecto</h4>
+    <form method="post" name="creategprojectform" id="creategprojectform">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action" value="create">
+        <div class="row">
+            <div class="columns large-8">
+                <label>Nombre del proyecto:
+                    {{ form.name }}
+                </label>
+            </div>
+            <div class="columns large-4">
+                <label>Administrador:
+                    {{ form.administrator }}
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="columns large-12">
+                <label>Anotaciones para este proyecto:
+                    {{ form.notes }}
+                </label>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+
+
+
+{% block final %}
+    {#    <script src="/static/foundation-6/js/vendor/jquery.min.js"></script>#}
+    {#<script src="/static/foundation-6/js/foundation.min.js"></script>#}
+    {#<script src="/static/js/js.cookie.js"></script>#}
+    <script>
+    $('.check_button').click(function(e){
+        e.preventDefault();
+        $('#creategprojectform').submit();
+    });
+    </script>
+{% endblock %}

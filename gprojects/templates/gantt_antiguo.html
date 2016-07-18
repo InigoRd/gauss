@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+{% load gproject_extras %}
+
+{% block head %}
+    <link rel="stylesheet" href="/static/css/gauss_gantt.css">
+    <style>
+        .gtask {
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .gtask_bar {
+            background-color: green;
+        {#            margin-left: -5px#}
+        }
+    </style>
+{% endblock %}
+
+{% block contenido %}
+
+    <input type="hidden" name="baseline" id="baseline" value="{{ gbaseline.id }}">
+    <input type="hidden" name="gtask_link" id="gtask_link" value="">
+    <input type="hidden" name="line_link_x" id="line_link_x" value="">
+    <input type="hidden" name="line_link_y" id="line_link_y" value="">
+    <input type="hidden" name="task_origin" id="task_origin" value="">
+    <input type="hidden" name="task_origin_type" id="task_origin_type" value="">
+    <div class="row">
+        <div class="columns large-12">
+            <div class="slider" data-slider data-initial-start="{{ gbaseline.left_side }}" data-end="12" id="num_cols"
+                 data-id="{{ gbaseline.id }}">
+                <span class="slider-handle" data-slider-handle role="slider" tabindex="1"></span>
+                <span class="slider-fill" data-slider-fill></span>
+                <input id="recoge_datos" type="hidden">
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="gantt_schedule">
+        {% include "gantt_schedule.html" %}
+    </div>
+
+    <div class="large reveal" id="gtask_data" data-reveal data-close-on-click="false"
+         data-id="{{ gbaseline.id }}"></div>
+
+    <div class="reveal" id="reveal_delete_link" data-reveal data-id="{{ gbaseline.id }}">
+        <h2><i class="fa fa-warning"></i> Borrar enlace </h2>
+        <p>Si pulsas sobre el botón <span class="info label">Borrar</span>, el enlace entre las dos tareas será
+            eliminado.</p>
+        <div class="button-group">
+            <a class="button" id="gtask_link_borrar">Borrar</a>
+            <a class="button" id="gtask_link_cancelar">Cancelar</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block final %}
+    <script>
+        CKEDITOR.disableAutoInline = true;
+        var jsonGtasks = {{ gbaseline.jsonGtasks|safe }};
+        var jsonGlinks = {{ gbaseline.jsonGlinks|safe }};
+        {#        var jsonGcols = {{ gbaseline.jsonGcolumns|safe }};#}
+
+        gp_buttons(['s_random']);
+
+        $('.random_button').click(function (e) {
+            e.preventDefault();
+            $.post("/gantt_ajax/", {action: 'get_links', gbaseline: {{ gbaseline.id }}},
+                    function (resp) {
+                        parse_glinks(resp);
+                    }, 'json');
+        });
+
+
+        $('body').on('propertychange input', '#name', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var name = $(this).val();
+            $.post("/gantt_ajax/", {action: 'change_name', id: id, name: name}, function (data) {
+                $('#name' + id).html(name);
+                $("#name-check").show().delay(1500).fadeOut();
+            });
+        });
+
+        $('body').on('propertychange input', '.change_time', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var duration = $(this).val();
+            var type = $(this).data('type');
+            $.post("/gantt_ajax/", {action: 'change_time', id: id, duration: duration, type: type}, function (data) {
+                if (type != 'estimate') {
+                    $('#estimate_time').val(data.estimate + 'd');
+                }
+                if (type != 'optimistic') {
+                    $('#optimistic_time').val(data.optimistic + 'd');
+                }
+                if (type != 'likely') {
+                    $('#likely_time').val(data.likely + 'd');
+                }
+                if (type != 'pessimistic') {
+                    $('#pessimistic_time').val(data.pessimistic + 'd');
+                }
+                if (type == 'estimate') {
+                    $(".time-check").show().delay(1500).fadeOut();
+                } else {
+                    $("#" + type + "-check").show().delay(1500).fadeOut();
+                    $("#estimate-check").show().delay(1500).fadeOut();
+                }
+            });
+        });
+
+        $('body').on('change', '#id_predecessors', function (e) {
+            e.preventDefault();
+            var form_variables = $('.sending_predecessors').serialize();
+            $.post("/gantt_ajax/", form_variables, function (data) {
+            });
+        });
+
+        $('#add_gtask').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'add_task', id: id}, function (data) {
+                $("#task_list").append('<div class="gtask" data-id="' + data.id + '">' + data.name + '</div>')
+                $("#task_bars").append('<div class="gtask_bar" style="width:' + data.pixels.pxdays + 'px" data-id="' + data.id + '">' + data.name + '</div>')
+            }, 'json');
+        });
+
+        $('body').on('closed.zf.reveal', '#gtask_data', function (e) {
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'gantt_schedule', id: id},
+                    function (resp) {
+                        console.log(resp.tasks[1].left, resp.links);
+                        parse_gtasks(resp.tasks);
+                        setTimeout(function () {
+                            parse_glinks(resp.links);
+                        }, 1000)
+                    }, 'json');
+        });
+
+        $('body').on('click', '.gtask', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'gantt_task_data', id: id}, function (resp) {
+                $('#gtask_data').html(resp).foundation('open');
+                $('.predecessors').select2({
+                    theme: "foundation",
+                    placeholder: "Escribe parte del nombre de la tarea",
+                    minimumInputLength: 3,
+                    ajax: {
+                        url: "/gantt_ajax/",
+                        dataType: 'json',
+                        delay: 250,
+                        method: 'POST',
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page,
+                                action: 'seek_tasks',
+                                gbaseline: $('#baseline').val(),
+                                id: id
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: $.map(data, function (item) {
+                                    return {
+                                        text: item.text,
+                                        id: item.id
+                                    }
+                                })
+                            };
+                        }
+                    },
+                    templateResult: function (result) {
+                        return '<div class="select2-user-result">' + result.text + '</div>';
+                    },
+                    templateSelection: function (result) {
+                        return result.text;
+                    },
+                    escapeMarkup: function (markup) {
+                        return markup;
+                    }
+                });
+            });
+        });
+
+
+        /**
+         * jQuery alterClass plugin
+         *
+         * Remove element classes with wildcard matching. Optionally add classes:
+         *   $( '#foo' ).alterClass( 'foo-* bar-*', 'foobar' )
+         *
+         * Copyright (c) 2011 Pete Boere (the-echoplex.net)
+         * Free under terms of the MIT license: http://www.opensource.org/licenses/mit-license.php
+         *
+         */
+        (function ($) {
+
+            $.fn.alterClass = function (removals, additions) {
+                var self = this;
+                if (removals.indexOf('*') === -1) {
+                    // Use native jQuery methods if there is no wildcard matching
+                    self.removeClass(removals);
+                    return !additions ? self : self.addClass(additions);
+                }
+                var patt = new RegExp('\\s' +
+                        removals.replace(/\*/g, '[A-Za-z0-9-_]+').split(' ').join('\\s|\\s') +
+                        '\\s', 'g');
+                self.each(function (i, it) {
+                    var cn = ' ' + it.className + ' ';
+                    while (patt.test(cn)) {
+                        cn = cn.replace(patt, ' ');
+                    }
+                    it.className = $.trim(cn);
+                });
+                return !additions ? self : self.addClass(additions);
+            };
+        })(jQuery);
+
+        $('body').on('moved.zf.slider', '#num_cols', function (e) {
+            var id = $(this).data('id');
+            var left = $('#recoge_datos').val();
+            var right = 12 - $('#recoge_datos').val();
+            $.post("/gantt_ajax/", {action: 'num_cols', id: id, left: left, right: right});
+            if (left > 0) {
+                {#                $('.left-pane').alterClass('small-* medium-* large-*').addClass('small-' + left + ' medium-' + left + ' large-' + left).show();#}
+                $('.left-pane').alterClass('small-*').addClass('small-' + left).show();
+            } else {
+                $('.left-pane').hide();
+            }
+            if (right > 0) {
+                {#                $('.right-pane').alterClass('small-* medium-* large-*').addClass('small-' + right + ' medium-' + right + ' large-' + right).show();#}
+                $('.right-pane').alterClass('small-*').addClass('small-' + right).show();
+            } else {
+                $('.right-pane').hide();
+            }
+
+        });
+
+        $('body').on('click', '.gantt_task_link', function (e) {
+            e.preventDefault();
+            $('#gtask_link').val($(this).data('id'));
+            $('#reveal_delete_link').foundation('open');
+        });
+
+        $('body').on('click', '#gtask_link_borrar', function (e) {
+            e.preventDefault();
+            $('#reveal_delete_link').foundation('close');
+            var id = $('#gtask_link').val();
+            $.post("/gantt_ajax/", {action: 'delete_link', gl_id: id, b_id: $('#baseline').val()},
+                    function (resp) {
+                        $('#link' + id).hide();
+                        parse_gtasks(resp.tasks);
+                        parse_glinks(resp.links);
+                    });
+        });
+
+        $('body').on('click', '#gtask_link_cancelar', function (e) {
+            e.preventDefault();
+            $('#reveal_delete_link').foundation('close');
+        });
+
+
+        {# ################################################################################################# #}
+        {# These lines are in order to get dinamic link between tasks #}
+        var down = false;
+        var pointx, pointy;
+        $('body').on('mousedown', '.gantt_link', function (event) {
+            event = event || window.event; // IE-ism
+
+            {#            // If pageX/Y aren't available and clientX/Y are,#}
+            {#            // calculate pageX/Y - logic taken from jQuery.#}
+            {#            // (This is to support old IE)#}
+            if (event.pageX == null && event.clientX != null) {
+                eventDoc = (event.target && event.target.ownerDocument) || document;
+                doc = eventDoc.documentElement;
+                body = eventDoc.body;
+
+                event.pageX = event.clientX +
+                        (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                        (doc && doc.clientLeft || body && body.clientLeft || 0);
+                event.pageY = event.clientY +
+                        (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                        (doc && doc.clientTop || body && body.clientTop || 0 );
+            }
+
+            $('#task_origin').val($(this).data('id'));
+            console.log($(this).data('id'));
+            if ($(this).hasClass('left_link')) {
+                $('#task_origin_type').val('S');
+            } else {
+                $('#task_origin_type').val('F');
+            }
+
+            down = true;
+            pointx = event.pageX;
+            pointy = event.pageY;
+            var $div = $("<div/>")
+                    .attr("id", "dinamic_link")
+                    .css("position", "absolute")
+                    .css("left", event.pageX)
+                    .css("top", event.pageY)
+                    .css("width", "0px")
+                    .css("height", "2px")
+                    .css("border-top", "2px dashed red");
+
+            $div.appendTo($('#gantt_schedule'));
+
+        });
+
+        {# If mouseup not in a gantt_link_control, nothing must be done except remove the link #}
+        $('body').mouseup(function (e) {
+            down = false;
+            $('#dinamic_link').remove();
+            {#    // if the target of the click is a div container with class "gantt_link_point":    #}
+            console.log($('.gantt_link').is(e.target));
+            console.log($(e.target));
+            {#            if ($('.gantt_link').is(e.target)) {#}
+            if ($('.gantt_link').is(e.target)) {
+                console.log($(e.target).data('id'));
+                var toy = $('#task_origin_type').val();
+                if ($(e.target).hasClass('left_link')) {
+                    var dependency = toy + 'S';
+                } else {
+                    var dependency = toy + 'F';
+                }
+                $.post("/gantt_ajax/", {
+                            action: 'create_link', dependency: dependency, b_id: $('#baseline').val(),
+                            gtask_d: $(e.target).data('id'), gtask_o: $('#task_origin').val()
+                        },
+                        function (resp) {
+                            parse_gtasks(resp.tasks);
+                            parse_glinks(resp.links);
+                        }, 'json');
+            }
+        });
+
+
+        $('#gantt_schedule').mousemove(function (event) {
+            {# If the button of the mouse is pressed: #}
+            if (down) {
+                var eventDoc, doc, body, pageX, pageY;
+
+                event = event || window.event; // IE-ism
+
+                // If pageX/Y aren't available and clientX/Y are,
+                // calculate pageX/Y - logic taken from jQuery.
+                // (This is to support old IE)
+                if (event.pageX == null && event.clientX != null) {
+                    eventDoc = (event.target && event.target.ownerDocument) || document;
+                    doc = eventDoc.documentElement;
+                    body = eventDoc.body;
+
+                    event.pageX = event.clientX +
+                            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                            (doc && doc.clientLeft || body && body.clientLeft || 0);
+                    event.pageY = event.clientY +
+                            (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                            (doc && doc.clientTop || body && body.clientTop || 0 );
+                }
+
+                {#                // Using event.pageX / event.pageY here:  #}
+                var w = Math.sqrt(Math.pow((parseInt(event.pageX) - parseInt(pointx)), 2) + Math.pow((parseInt(event.pageY) - parseInt(pointy)), 2));
+                var d = Math.atan2(parseInt(event.pageX) - parseInt(pointx), parseInt(pointy) - parseInt(event.pageY)) * 360 / 2 / Math.PI - 90;
+
+                $('#dinamic_link').css('width', w)
+                        .css('transform-origin', 'left top')
+                        .css('transform', 'rotate(' + d + 'deg)');
+            }
+        });
+
+        {#    ##################################################################################}
+
+        $('body').on('change', '.check_gtask', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $('#row' + id).toggleClass('gtask_selected');
+            var numberOfChecked = $('.check_gtask:checked').length;
+            if (numberOfChecked > 0) {
+                gp_buttons(['s_indent', 's_dedent']);
+            } else {
+                gp_buttons(['h_indent', 'h_dedent']);
+            }
+        });
+
+        $('.dedent_button').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'dedent', gtasks: $('.check_gtask:checked').serialize()},
+                    function (resp) {
+                        $('#gantt_schedule').html(resp);
+                    });
+        });
+
+        $('.indent_button').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'indent', gtasks: $('.check_gtask:checked').val()},
+                    function (resp) {
+                        $('#gantt_schedule').html(resp);
+                    });
+        });
+
+        $('body').on('mousemove', '.gantt_column', function (event) {
+            var w = $(this).css('width');
+            var column = $(this).data('col');
+            $('.' + column).css('width', w);
+        });
+
+
+        function parse_glinks(glinks) {
+            var margin_task = 2;
+            var task_height = margin_task * 11;
+            var line_width = 2;
+            var link_wrapper_width = task_height / 2;
+            var rect0 = $('#task_bars')[0].getBoundingClientRect();
+            glinks.forEach(function (l) {
+                var predecessor = $('#bar' + l.source)[0];
+                var successor = $('#bar' + l.target)[0];
+
+                var rect1 = predecessor.getBoundingClientRect();
+                var rect2 = successor.getBoundingClientRect();
+                var p_ini = [parseInt(rect1.right) - parseInt(rect0.left), (parseInt(rect1.top) + parseInt(rect1.bottom) - parseInt(rect0.top) * 2) / 2];
+                var p_fin = [parseInt(rect2.left) - parseInt(rect0.left), (parseInt(rect2.top) + parseInt(rect2.bottom) - parseInt(rect0.top) * 2) / 2];
+
+                if (Math.abs(p_ini[0] - p_fin[0]) <= task_height) {
+                    var p1 = p_ini;
+                    var p2 = [p1[0] + task_height, p1[1]];
+                    var p3 = [p2[0], p1[1] + task_height / 2];
+                    var p4 = [p_fin[0] - task_height, p3[1]];
+                    var p5 = [p4[0], p_fin[1]];
+                    var p6 = p_fin;
+                    var points = [[p1, p2], [p2, p3], [p3, p4], [p4, p5], [p5, p6]];
+                }
+                else {
+                    var p1 = p_ini;
+                    var p2 = [p1[0] + task_height, p1[1]];
+                    var p3 = [p2[0], p_fin[1]];
+                    var p4 = p_fin;
+                    var points = [[p1, p2], [p2, p3], [p3, p4]];
+                }
+
+                function shift(p0, p1) {
+                    var left = -1 * link_wrapper_width / 2;
+                    var top = -1 * link_wrapper_width / 2;
+                    if ((p0[0] - p1[0]) > 0) {
+                        left = -link_wrapper_width / 2 - (p0[0] - p1[0]);
+                    }
+                    if ((p0[1] - p1[1]) > 0) {
+                        top = -link_wrapper_width / 2 - (p0[1] - p1[1]);
+                    }
+                    return [left, top]
+                }
+
+                if ($('#link' + l.id).length > 0) {
+                    var $div_wrapper = $('#link' + l.id).html('');
+                } else {
+                    var $div_wrapper = $("<div/>")
+                            .attr("class", "gantt_task_link")
+                            .attr("id", "link" + l.id)
+                            .attr("data-id", l.id);
+                }
+
+                points.forEach(function (p, i) {
+                    var top_wrapper = p[0][1] + shift(p[0], p[1])[1] + line_width;
+                    var left_wrapper = p[0][0] + shift(p[0], p[1])[0];
+                    var width_wrapper = link_wrapper_width + Math.abs(p[0][0] - p[1][0]);
+                    var height_wrapper = link_wrapper_width + Math.abs(p[0][1] - p[1][1]);
+
+                    var width_line = line_width + Math.abs(p[0][0] - p[1][0]);
+                    var height_line = line_width + Math.abs(p[0][1] - p[1][1]);
+
+                    var margin = link_wrapper_width / 2;
+
+                    var $div_wrapper_child = $("<div/>")
+                            .attr("class", "gantt_line_wrapper")
+                            .css("top", top_wrapper)
+                            .css("left", left_wrapper)
+                            .css("height", height_wrapper)
+                            .css("width", width_wrapper)
+                            .css("top", top_wrapper);
+                    var $div_line = $("<div/>")
+                            .css("top", top_wrapper)
+                            .css("height", height_line)
+                            .css("width", width_line)
+                            .css("margin-top", margin)
+                            .css("margin-left", margin)
+                            .appendTo($div_wrapper_child);
+                    $div_wrapper.append($div_wrapper_child);
+                    if (i === points.length - 1) {
+                        var $arrow = $("<div/>")
+                                .css("top", top_wrapper + margin - line_width)
+                                .css("left", left_wrapper + width_wrapper - link_wrapper_width)
+                                .attr("class", "gantt_link_arrow gantt_link_arrow_right")
+                                .appendTo($div_wrapper);
+                    }
+                });
+                $div_wrapper.appendTo($('#task_bars'));
+            });
+        }
+
+        function parse_gtasks(gtasks) {
+            gtasks.forEach(function (gtask) {
+                var gll = parseInt(gtask.left - 14);
+                var glr = parseInt(gtask.left + gtask.width);
+                if ($('#bar' + gtask.id).length > 0) {
+                    $('#bar' + gtask.id)
+                            .css("margin-left", gtask.left)
+                            .css("width", gtask.width);
+                    $('#gll' + gtask.id).css("left", gll);
+                    $('#glr' + gtask.id).css("left", glr);
+
+                } else {
+                    {# From this point, the list of left pane elements are defined #}
+                    var $div_row = $("<div/>")
+                            .attr("class", 'row gtask_row')
+                            .css("height", '28px')
+                            .css("margin-left", "0rem")
+                            .attr("data-id", gtask.id)
+                            .attr("data-pos", gtask.pos)
+                            .attr("data-columns", 'undone')
+                            .appendTo($('#task_list'));
+                    var $div_check = $("<div/>")
+                            .attr("class", "gantt_list_column")
+                            .css("width", "20px")
+                            .css("resize", "none")
+                            .appendTo($div_row);
+                    var $check = $("<input/>")
+                            .attr("type", "checkbox")
+                            .attr("name", "gtasks")
+                            .attr("value", gtask.id)
+                            .attr("class", "check_gtask")
+                            .attr("data-id", gtask.id)
+                            {#                            .css("vertical-align", "middle")#}
+                            .appendTo($div_check);
+                    var $div_col0 = $("<div/>")
+                            .attr("class", "col0 gantt_list_column")
+                            .attr("data-col", "col0")
+                            .attr("data-pos", gtask.pos)
+                            .attr("data-id", gtask.id)
+                            .attr("id", "col0" + gtask.pos)
+                            .attr("contenteditable", "true")
+                            .css("width", "150px")
+                            .html(gtask.name)
+                            .appendTo($div_row);
+{#                    gtask.cols.forEach(function (col, i) {#}
+{#                        var $div_col1 = $("<div/>")#}
+{#                                .attr("class", "gantt_list_column col" + col.pos)#}
+{#                                .attr("data-col", "col" + col.pos)#}
+{#                                .attr("data-pos", gtask.pos)#}
+{#                                .attr("data-id", gtask.id)#}
+{#                                .attr("id", "col" + col.pos + gtask.pos)#}
+{#                                .attr("contenteditable", "true")#}
+{#                                .css("width", "100px")#}
+{#                                .html('')#}
+{#                                .appendTo($div_row);#}
+{#                    });#}
+                    var $div_col1 = $("<div/>")
+                                .attr("class", "gantt_list_column col1")
+                                .attr("data-col", "col1")
+                                .attr("data-pos", gtask.pos)
+                                .attr("data-id", gtask.id)
+                                .attr("id", "col1" + gtask.pos)
+                                .attr("contenteditable", "true")
+                                .css("width", "100px")
+                                .html(gtask.duration)
+                                .appendTo($div_row);
+                    var $div_col2 = $("<div/>")
+                                .attr("class", "gantt_list_column col2")
+                                .attr("data-col", "col2")
+                                .attr("data-pos", gtask.pos)
+                                .attr("data-id", gtask.id)
+                                .attr("id", "col2" + gtask.pos)
+                                .attr("contenteditable", "true")
+                                .css("width", "100px")
+                                .html(gtask.es)
+                                .appendTo($div_row);
+                    var $div_col3 = $("<div/>")
+                                .attr("class", "gantt_list_column col3")
+                                .attr("data-col", "col3")
+                                .attr("data-pos", gtask.pos)
+                                .attr("data-id", gtask.id)
+                                .attr("id", "col3" + gtask.pos)
+                                .attr("contenteditable", "true")
+                                .css("width", "100px")
+                                .html(gtask.lf)
+                                .appendTo($div_row);
+
+                    {# Until here the list of elements needed to the left pane #}
+                    {# From this point, the list of right pane elements are defined #}
+                    var $div2 = $("<div/>")
+                            .attr("class", "gtask_row")
+                            .css("height", "28px")
+                            .attr("data-id", gtask.id)
+                            .attr("data-pos", gtask.pos)
+                            .attr("data-columns", 'undone')
+                            .appendTo($('#task_bars'));
+                    var $div_bar = $("<div/>")
+                            .attr("class", "gantt_gtask_bar")
+                            .attr("data-id", gtask.id)
+                            .attr("id", "bar" + gtask.id)
+                            .css("margin-left", gtask.left)
+                            .css("width", gtask.width)
+                            .css("height", "90%")
+                            .appendTo($div2);
+                    var div_progress = $("<div/>")
+                            .attr("class", "gantt_gtask_progress")
+                            .attr("id", "bar" + gtask.id)
+                            .css("width", gtask.width_progress)
+                            .css("max-width", gtask.width)
+                            .appendTo($div_bar);
+                    var div_name = $("<div/>")
+                            .css("position", "absolute")
+                            .css("top", 0)
+                            .css("left", 0)
+                            .css("z-index", 300)
+                            .html(gtask.name)
+                            .appendTo($div_bar);
+                    var div_gll = $("<div/>")
+                            .attr("class", "gantt_link")
+                            .attr("id", "gll" + gtask.id)
+                            .attr("data-id", gtask.id)
+                            .css("left", gll)
+                            .appendTo($div2);
+                    var div_glr = $("<div/>")
+                            .attr("class", "gantt_link")
+                            .attr("id", "glr" + gtask.id)
+                            .attr("data-id", gtask.id)
+                            .css("left", glr)
+                            .appendTo($div2);
+
+
+                    {#                    var div2 = '<div class="gtask_row" style="height: 28px;" data-id="' + gtask.id + '">' +#}
+                    {#                            '<div data-id="' + gtask.id + '" class="gantt_gtask_bar" ' +#}
+                    {#                            ' id="bar' + gtask.id + '"' + 'style="margin-left: ' + gtask.left + 'px;width: ' +#}
+                    {#                            gtask.width + 'px;">&nbsp;' +#}
+                    {#                            '<div style="height:11px;text-align: left;z-index:150;resize: horizontal; ' +#}
+                    {#                            'overflow: hidden;width: ' + gtask.width_progress + 'px;position:absolute;top:0px;left: 0px;" class="gantt_task_progress">' +#}
+                    {#                            '<div style="position:absolute;top: 0px;left: 0px;z-index: 100;">' + gtask.name + '</div>' +#}
+                    {#                            '</div>' +#}
+                    {#                            '<div style="position:absolute;top: 0px;left: 0px;z-index: 100">' + gtask.name + '</div>' +#}
+                    {#                            '</div>' +#}
+                    {#                            '<div class="gantt_link" id="gll' + gtask.id + '" data-id="' + gtask.id + '" style="left:' + gll + 'px;">&nbsp;</div>' +#}
+                    {#                            '<div class="gantt_link" id="glr' + gtask.id + '" data-id="' + gtask.id + '" style="left:' + glr + 'px;">&nbsp;</div>';#}
+                    {#                    '</div>';#}
+                    {#                    $(div2).appendTo($('#task_bars'));#}
+                }
+            });
+        }
+
+        parse_gtasks(jsonGtasks);
+        parse_glinks(jsonGlinks);
+
+        $('body').on('mouseenter', '.gtask_row', function (e) {
+            var id = $(this).data('id');
+            var pos = $(this).data('pos');
+            $('.gantt_link').hide();
+            $('#gll' + id).show();
+            $('#glr' + id).show();
+{#            if ($(this).data('columns') == 'undone') {#}
+{#                $(this).data('columns', 'done');#}
+{#                $.post("/gantt_ajax/", {action: 'columns', id: id}, function (resp) {#}
+{#                    resp.forEach(function (c) {#}
+{#                        $('#col' + c.pos + pos).html(c.value);#}
+{#                    });#}
+{#                });#}
+{#            }#}
+        });
+
+{#        $(document).keyup(function (e) {#}
+{#            if (e.keyCode == 27) { // escape key maps to keycode `27`#}
+{#                $('.gantt_link').hide();#}
+{#            }#}
+{#        });#}
+
+        $('.gantt_list_column').keyup(function (e) {
+            var col = $(this).data('col');
+            var id = $(this).data('id');
+            switch (e.which) {
+                case 38: // up
+                    console.log('up');
+                    var next_pos = parseInt($(this).data('pos')) - 1;
+                    var id = '#' + col + next_pos;
+                    $(id).focus();
+                    break;
+                case 40: // down
+                    console.log('down');
+                    var next_pos = parseInt($(this).data('pos')) + 1;
+                    var id = '#' + col + next_pos;
+                    $(id).focus();
+                    break;
+                default:
+                    $.post("/gantt_ajax/", {action: 'change_name', id: id, name: name}, function (data) {
+                        $('#name' + id).html(name);
+                        $("#name-check").show().delay(1500).fadeOut();
+                    });
+                    return; // exit this handler for other keys
+            }
+            e.preventDefault(); // prevent the default action (scroll / move caret)
+        });
+    </script>
+{% endblock %}

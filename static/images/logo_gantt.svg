@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" id="svg2" sodipodi:docname="_svgclean2.svg" viewBox="0 0 510.44 598.65" version="1.1" inkscape:version="0.48.3.1 r9886">
+  <sodipodi:namedview id="base" bordercolor="#666666" inkscape:pageshadow="2" inkscape:guide-bbox="true" pagecolor="#ffffff" inkscape:window-maximized="0" inkscape:zoom="0.1721875" inkscape:window-x="0" inkscape:window-height="645" showgrid="false" borderopacity="1.0" inkscape:current-layer="layer1" inkscape:cx="-384.50858" inkscape:cy="854.71509" showguides="true" inkscape:window-y="0" inkscape:window-width="674" inkscape:pageopacity="0.0" inkscape:document-units="px">
+    <sodipodi:guide id="guide3506" position="553.98838,598.65218" orientation="0,1"/>
+    <sodipodi:guide id="guide3510" position="548.90671,583.77015" orientation="0,1"/>
+  </sodipodi:namedview>
+  <g id="layer1" inkscape:label="Capa 1" inkscape:groupmode="layer" transform="translate(-124.78 -273.78)">
+    <rect id="rect3498" style="stroke:#0c3479;stroke-width:15;fill:#79a3dc" height="154.29" width="418.57" y="325.22" x="132.86"/>
+    <rect id="rect3500" style="stroke:#00a01b;stroke-width:15;stroke-miterlimit:3.9;fill:#00d01b" height="161.43" width="252.86" y="511.79" x="374.86"/>
+    <rect id="rect3502" style="stroke:#cddb00;stroke-width:15;fill:#f7ff00" height="157.14" width="155.71" y="707.79" x="286.29"/>
+    <path id="rect3504" style="fill:#000000" inkscape:connector-curvature="0" d="m124.84 273.78v14.875h-0.0625v14.875h14.156v-14.031h476v14.031h14.125v-14.031h0.0937v-15.73h-504.31z"/>
+  </g>
+  <metadata id="metadata11">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <cc:license rdf:resource="http://creativecommons.org/licenses/publicdomain/"/>
+        <dc:publisher>
+          <cc:Agent rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

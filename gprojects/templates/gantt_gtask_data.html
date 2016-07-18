@@ -1,0 +1,132 @@
+{% load gproject_extras %}
+<h4 class="app_title">Parámetros de la tarea</h4>
+<input type="hidden" name="gtask_id" class="sending_predecessors" value="{{ gtask.id }}">
+<input type="hidden" name="action" class="sending_predecessors" value="change_predecessors">
+
+<ul class="tabs" data-tabs id="gtask-tabs">
+    <li class="tabs-title is-active"><a href="#general_tab" aria-selected="true">General</a></li>
+    <li class="tabs-title"><a href="#predecessors_tab">Predecessors</a></li>
+    <li class="tabs-title"><a href="#hresources_tab">Human resources</a></li>
+    <li class="tabs-title"><a href="#mresources_tab">Material resources</a></li>
+    <li class="tabs-title"><a href="#constraints_tab">Constraints</a></li>
+    <li class="tabs-title"><a href="#notes_tab">Notes</a></li>
+</ul>
+
+<div class="tabs-content" data-tabs-content="gtask-tabs">
+    <div class="tabs-panel is-active" id="general_tab">
+        <div class="row">
+            <div class="columns large-9">
+                <label>Nombre <span id="name-check" style="color:red;display: none;"><i class="fa fa-check"></i></span></label>
+                <input type="text" name="name" id="name" value="{{ gtask.name }}" data-id="{{ gtask.id }}">
+                </label>
+            </div>
+            <div class="columns large-3">
+                <label> Duración estimada <span class="time-check" id="estimate-check" style="color:red;display: none;"><i
+                        class="fa fa-check"></i></span></label>
+                <input title="Duración estimada de  la tarea" type="text" name="estimate_time" id="estimate_time"
+                       class="change_time"
+                       value="{{ gtask.estimate_time|days }}d" data-id="{{ gtask.id }}" data-type="estimate">
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="columns large-4">
+                <label>Duración optimista <span class="time-check" id="optimistic-check"
+                                                style="color:red;display: none;"><i
+                        class="fa fa-check"></i></span></label>
+                <input title="Duración optimista de  la tarea" type="text" name="opmistic_time" id="optimistic_time"
+                       class="change_time"
+                       value="{{ gtask.optimistic_time|days }}d" data-id="{{ gtask.id }}" data-type="optimistic">
+                </label>
+            </div>
+            <div class="columns large-4">
+                <label>Duración probable <span class="time-check" id="likely-check" style="color:red;display: none;"><i
+                        class="fa fa-check"></i></span></label>
+                <input title="Duración pesimista de  la tarea" type="text" name="likely_time" id="likely_time"
+                       class="change_time" value="{{ gtask.likely_time|days }}d" data-id="{{ gtask.id }}"
+                       data-type="likely">
+                </label>
+            </div>
+            <div class="columns large-4">
+                <label>Duración pesimista <span class="time-check" id="pessimistic-check"
+                                                style="color:red;display: none;"><i
+                        class="fa fa-check"></i></span></label>
+                <input title="Duración pesimista de  la tarea" type="text" name="pessimistic_time" id="pessimistic_time"
+                       class="change_time"
+                       value="{{ gtask.pessimistic_time|days }}d" data-id="{{ gtask.id }}" data-type="pessimistic">
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="tabs-panel" id="predecessors_tab">
+        <div class="row">
+            <div class="columns large-12">
+                <label>Predecesoras <span id="predecessors-check" style="color:red;display: none;"><i
+                        class="fa fa-check"></i></span></label>
+                <select class="predecessors sending_predecessors" id="id_predecessors" name="predecessors" multiple
+                        data-id="{{ gtask.id }}">
+                        {% for t in gtasks %}
+                        <option value="{{ t.id }}" {% if t in gtask.predecessors.all %} selected {% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="tabs-panel" id="hresources_tab">
+        {#<div class="row">#}
+        {#    <div class="columns large-12">#}
+        {#        <label>Recursos#}
+        {#            <select class="gresources" id="id_gresources" name="gresources" multiple>#}
+        {#            </select>#}
+        {#        </label>#}
+        {#    </div>#}
+        {#</div>#}
+    </div>
+    <div class="tabs-panel" id="mresources_tab">
+        <p>hola3</p>
+    </div>
+    <div class="tabs-panel" id="constraints_tab">
+        <p>hola4</p>
+    </div>
+    <div class="tabs-panel" id="notes_tab">
+        <div class="row">
+            <div class="columns large-12">
+                <label>Observaciones
+                    <textarea class="notes" id="id_notes" name="notes" rows="5"></textarea>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<button class="close-button" data-close aria-label="Close reveal" type="button">
+    <span aria-hidden="true">&times;</span>
+</button>
+
+
+{#TASK_RESTRICTIONS = (('ASAP', 'Lo antes posible'), ('ALAP', 'Lo más tarde posible'),#}
+{#                         ('SD', 'Debe empezar el ...'), ('ED', 'Debe terminar el ...'),#}
+{#                         ('SNBD', 'No iniciar antes del ...'), ('SNLD', 'Iniciar como muy tarde el ...'),#}
+{#                         ('ENBD', 'No terminar antes del ...'), ('ENLD', 'Terminar como muy tarde el ...'))#}
+{#    DEPENDENCIES = (('FS', 'Finish to Start'), ('FF', 'Finish to Finish'),#}
+{#                    ('SS', 'Start to Start'), ('SF', 'Start to Finish'),)#}
+{#    gbaseline = models.ForeignKey(Gbaseline, blank=True, null=True)#}
+{#    name = models.CharField('Name', max_length=200, blank=True, null=True)#}
+{#    optimistic_time = models.DurationField('Optimistic time', blank=True, null=True, default=timedelta(days=1))#}
+{#    likely_time = models.DurationField('Likely time', blank=True, null=True, default=timedelta(days=1))#}
+{#    pessimistic_time = models.DurationField('Pessimistic time', blank=True, null=True, default=timedelta(days=1))#}
+{#    gresources = models.ManyToManyField(Gresource, blank=True)#}
+{#    priority = models.IntegerField('Priority', blank=True, null=True, default=500)#}
+{#    restriction = models.CharField('Restriction type', choices=TASK_RESTRICTIONS, max_length=10)#}
+{#    restriction_date = models.DateTimeField('Restriction date', blank=True, null=True)#}
+{#    dependencies = models.CharField('Type of dependency', choices=DEPENDENCIES, max_length=10)#}
+{#    percentage_complete = models.IntegerField('Percentage complete', blank=True, null=True, default=0)#}
+{#    notes = models.TextField('Notes about the task', blank=True, null=True)#}
+{#    created = models.DateTimeField('Date of creation', auto_now_add=True)#}
+{#    modified = models.DateTimeField('Last modification', auto_now=True)#}
+{#    children = models.ManyToManyField('self', blank=True, related_name='children')#}
+{#    predecessors = models.ManyToManyField('self', blank=True, related_name='predecessors')#}
+{#    successors = models.ManyToManyField('self', blank=True, related_name='successors')#}
+

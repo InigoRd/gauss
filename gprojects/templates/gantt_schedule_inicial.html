@@ -1,0 +1,37 @@
+{% load gproject_extras %}
+<div class="columns small-3 left-pane" style="overflow-x: auto;margin-top: -25px;">
+    <div id="task_list">
+        <div style="white-space: nowrap;border-bottom: 1px solid #eeeeee;height: 60px;"
+             title="Work Breackdown Structure">
+            WBS
+        </div>
+        {% for gtask in gbaseline.gtasks %}
+            <div>
+                <a class="gtask" id="name{{ gtask.id }}" data-id="{{ gtask.id }}">{{ gtask.name }}</a>
+            </div>
+        {% endfor %}
+    </div>
+    <div>
+        <a class="button" id="add_gtask" data-id="{{ gbaseline.id }}"><i class="fa fa-plus"></i> Task</a>
+    </div>
+</div>
+<div class="columns small-9 right-pane" style="overflow-x: auto;margin-top: -25px;">
+    <div style="white-space: nowrap;height: 60px;width: {{ gbaseline.project_num_days|multiply:gbaseline.scale }}px;">
+        {% for m in gbaseline.project_dates %}
+            <div style="width:{{ m|length|multiply:gbaseline.scale }}px;float: left;text-align: center;">
+                <div style="border-right: 1px solid #aaaaaa;">{{ m.0|date:"F Y" }}</div>
+                {% for d in m %}
+                    <div style="float: left;width: {{ gbaseline.scale }}px;border: 1px solid #eeeeee;">{{ d|date:'d' }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    <div id="task_bars">
+        {% for gtask in gbaseline.gtasks %}
+            <div class="gtask_bar"
+                 style="margin-left:{{ gtask.pixels.pxleft }}px;width: {{ gtask.pixels.pxdays }}px;">&nbsp;
+                <div style="font-size:6pt;float: left;color:white;font-weight: 800;"> {{ gtask.tearly_date }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,38 @@
+{% load my_templatetags %}
+<div>
+    <h5><i class="fa fa-hand-o-up" id="select_permisos"></i> <strong>Selecciona permisos asociados al menú de cada
+        módulo</strong></h5>
+</div>
+
+<dl class="accordion" data-accordion>
+    {% for menu in menus %}
+        <dd class="accordion-navigation" style="margin-left: 5px;">
+            <a href="#panel_{{ menu.id }}" style="padding-left: {{ menu.nivel }}em;">
+                {% if menu.nivel == '1' %}
+                    <span class="heading">
+                    {{ menu.texto_menu }} ({{ menu.tipo }})</span>
+                {% elif menu.nivel == '2' and menu.href|length < 2 %}
+                    <span class="heading2">&nbsp;{{ menu.texto_menu }} ({{ menu.tipo }})</span>
+                {% elif menu.nivel == '2' and menu.href|length > 2 %}
+                    <span class="heading3 menu_nivel2">{{ menu.texto_menu }} ({{ menu.tipo }})</span>
+                {% else %}
+                    <span class="heading3 menu_nivel3">{{ menu.texto_menu }} ({{ menu.tipo }})</span>
+                {% endif %}
+                <span id="menu{{ menu.id }}" style="color: #a3a3a3">
+                    ({{ menu|permisos_menu_seleccionados:gauser_extra }})
+                </span>
+            </a>
+
+            <div id="panel_{{ menu.id }}" class="content">
+                {% for permiso in menu|permisos_menu %}
+                    <input type="checkbox" id="permiso___{{ permiso.id }}" name="permisos" data-menu="{{ menu.id }}"
+                           class="check___id_permisos menu{{ menu.id }}" value="{{ permiso.id }}" data-code="{{ permiso.code_nombre }}"
+                            {% if permiso in gauser_extra.permisos.all %}
+                           checked="checked" {% endif %}>
+                    {{ permiso.nombre }}
+                    {% if not forloop.last %}<br>{% endif %}
+                {% endfor %}
+            </div>
+        </dd>
+    {% endfor %}
+</dl>

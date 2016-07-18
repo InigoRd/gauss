@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load my_templatetags %}
+{% block contenido %}
+    <form action="" method="post" enctype="multipart/form-data" id="{{ formname }}" name="{{ formname }}">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action" value="">
+        <input type="hidden" name="gauser_extra_selected" id="gauser_extra_selected" value="{{ gauser_extra.id }}">
+
+        <div class="">
+            <h4 style="text-align: center;color: #008CBA;"><strong> Generación masiva de claves</strong></h4>
+        </div>
+
+        {% for subentidad in subentidades %}
+            <div>
+                <h5><i class="fa fa-hand-o-up"></i> <strong>{{ subentidad.nombre }}</strong></h5>
+                <ul class="inline-list">
+                    <li><a id="todos___{{ subentidad.id }}" class="select_todos">
+                        &nbsp;&nbsp;<i class="fa fa-check-circle"></i> Todos</a>
+                    </li>
+                    <li><a id="ninguno___{{ subentidad.id }}" class="select_ninguno">
+                        &nbsp;&nbsp;<i class="fa fa-times-circle"></i> Ninguno</a></li>
+                </ul>
+            </div>
+            <div class="panel ">
+                <div class="row">
+                    {% for socio in subentidad|socios_subentidad %}
+                        <div class="large-3 columns">
+                            <input type="checkbox" id="sub_{{ subentidad.id }}___{{ socio.id }}" name="socios"
+                                   value="{{ socio.id }}" class="sub_{{ subentidad.id }}">
+                            {{ socio.gauser.last_name }}, {{ socio.gauser.first_name }}
+                        </div>
+                        {% if forloop.counter|divisibleby:"4" %}
+                            </div><br>
+                            <div class="row">
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+            </div>
+        {% endfor %}
+    </form>
+
+{% endblock %}
+
+{% block final %}
+    <script>
+        habilita(['s_check', 's_file-text-o']);
+
+        $('#check_sign').click(function () {
+            if (!($(this).hasClass('disabled'))) {
+                $('#action').val('aceptar');
+                document.{{formname}}.submit();
+                return false;
+            } else {
+                return false;
+            }
+        });
+
+        $('#file-text-o_sign').click(function () {
+            if (!($(this).hasClass('disabled'))) {
+                $('#action').val('correo_postal');
+                document.{{formname}}.submit();
+                return false;
+            } else {
+                return false;
+            }
+        });
+
+        $('.select_todos').click(function (e) {
+            e.preventDefault();
+            var id = $(this).attr('id').split('___')[1];
+            $('.sub_' + id).prop('checked', true);
+        });
+        $('.select_ninguno').click(function (e) {
+            e.preventDefault();
+            var id = $(this).attr('id').split('___')[1];
+            $('.sub_' + id).prop('checked', false);
+        });
+
+    </script>
+{% endblock %}

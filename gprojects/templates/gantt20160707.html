@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+{% load gproject_extras %}
+
+{% block head %}
+    <link rel="stylesheet" href="/static/css/gauss_gantt.css">
+    <style>
+        .gtask {
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .gtask_bar {
+            background-color: green;
+        {#            margin-left: -5px#}
+        }
+    </style>
+{% endblock %}
+
+{% block contenido %}
+    <input type="hidden" name="action" id="action" value="">
+    <input type="hidden" name="baseline" id="baseline" value="{{ gbaseline.id }}">
+    <input type="hidden" name="gtask_link" id="gtask_link" value="">
+    <input type="hidden" name="line_link_x" id="line_link_x" value="">
+    <input type="hidden" name="line_link_y" id="line_link_y" value="">
+    <input type="hidden" name="task_origin" id="task_origin" value="">
+    <input type="hidden" name="task_origin_type" id="task_origin_type" value="">
+    <div class="row" id="row_slider">
+        <div class="columns large-12">
+            <div class="slider" data-slider data-initial-start="{{ gbaseline.left_side }}" data-end="12" id="num_cols"
+                 data-id="{{ gbaseline.id }}">
+                <span class="slider-handle" data-slider-handle role="slider" tabindex="1"></span>
+                <span class="slider-fill" data-slider-fill></span>
+                <input id="left_num_cols" type="hidden">
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="gantt_schedule">
+        <div class="columns small-{{ gbaseline.left_side }} left-pane">
+            <div class="row" id="left-header" style="margin-left: 0px;">
+                <div class="row" id="column_headers" style="margin-left:0;position: relative;"></div>
+                <div class="row" style="margin-left: 0px;">&nbsp;</div>
+            </div>
+
+            <div class="row" id="task_list" style="margin-left: 0px;position:relative;white-space: nowrap;">
+                <div id="task_list-1"></div>
+            </div>
+
+            <div class="row">
+                <div class="columns small-12">
+                    <a class="button" id="add_gtask" data-id="{{ gbaseline.id }}"><i class="fa fa-plus"></i> Task</a>
+                </div>
+            </div>
+        </div>
+        <div class="columns small-{{ gbaseline.right_side }} right-pane">
+            <div class="row" id="right-header" style="margin-left: 0px;">
+                <div class="row" id="tl_months" style="margin-left: 0px;"></div>
+                <div class="row" id="tl_days" style="margin-left: 0px;"></div>
+            </div>
+
+            <div class="row" id="task_bars" style="margin-left: 0px;position:relative;white-space: nowrap;">
+                <div id="task_bars-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="large reveal" id="gtask_data" data-reveal data-close-on-click="false"
+         data-id="{{ gbaseline.id }}"></div>
+
+    <div class="reveal" id="reveal_delete_link" data-reveal data-id="{{ gbaseline.id }}">
+        <h2><i class="fa fa-warning"></i> Borrar enlace </h2>
+        <p>Si pulsas sobre el botón <span class="info label">Borrar</span>, el enlace entre las dos tareas será
+            eliminado.</p>
+        <div class="button-group">
+            <a class="button" id="gtask_link_borrar">Borrar</a>
+            <a class="button" id="gtask_link_cancelar">Cancelar</a>
+        </div>
+    </div>
+
+    <div class="menu_header_wrapper">
+        <div class="menu_header" id="colmenu">
+            <ul>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-align-center"><i
+                        class="fa fa-align-center"></i> Texto centrado </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-align-left"><i
+                        class="fa fa-align-left"></i> Texto izquierda </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-align-right"><i
+                        class="fa fa-align-right"></i> Texto derecha </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-move-right"><i
+                        data-direction="right" class="fa fa-arrow-right"></i> Mover columna (derecha) </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-move-left"><i
+                        data-direction="left" class="fa fa-arrow-left"></i> Mover columna (izquierda) </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header item_main_menu"
+                                                     data-action="gcolumn-remove"><i
+                        class="fa fa-trash"></i> Borrar columna </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_submenu" data-direction="left"
+                                                     data-action="gcolumn-insert-left"><i
+                        class="fa fa-chevron-left"></i> Insertar columna (izquierda) </a></li>
+                <li style="list-style-type:none;"><a class="item_menu_submenu" data-direction="right"
+                                                     data-action="gcolumn-insert-right"><i
+                        class="fa fa-chevron-right"></i> Insertar columna (derecha) </a></li>
+            </ul>
+        </div>
+        <div class="menu_header" id="colsubmenu">
+            <ul>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="estimate_time_days"><i
+                        class="fa fa-asterisk"></i> Estimate time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="optimistic_time"><i
+                        class="fa fa-asterisk"></i> Optimistic time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="likely_time"><i
+                        class="fa fa-asterisk"></i> Likely time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="pessimistic_time"><i
+                        class="fa fa-asterisk"></i> Pessimistic time (d)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="early_start_date"><i
+                        class="fa fa-asterisk"></i> Early start (date)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="early_start_datetime"><i
+                        class="fa fa-asterisk"></i> Early start (datetime)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="last_finish_date"><i
+                        class="fa fa-asterisk"></i> Last Finish (date)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="last_finish_datetime"><i
+                        class="fa fa-asterisk"></i> Last Finish (datetime)</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="gtask_name"><i
+                        class="fa fa-asterisk"></i> Task name</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="total_float"><i
+                        class="fa fa-asterisk"></i> Total float</a></li>
+                <li style="list-style-type:none;"><a class="item_menu_header" data-action="gcolumn-insert"
+                                                     data-content="free_float"><i
+                        class="fa fa-asterisk"></i> Free float</a></li>
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block final %}
+    <script src="/static/js/moment-with-locales.min.js"></script>
+    <script src="/static/js/gantt.js"></script>
+    <script>
+        CKEDITOR.disableAutoInline = true;
+        moment.locale('es');
+        var start = new Date().getTime();
+        var gp = GAUSSPROJECT.parse_data({{ jgprojects|safe }}, {{ jgbaselines|safe }}, {{ jgtasks|safe }}, {{ jgtask_links|safe }}, {{ jgcolumns|safe }});
+        var end = new Date().getTime();
+        var time = end - start;
+        console.log('Execution time: ' + time);
+
+        gp_buttons({random: 'show'});
+
+        $('.random_button').click(function (e) {
+            e.preventDefault();
+            GAUSSPROJECT.toggle_glinks();
+        });
+
+        $('#add_gtask').click(function (e) {
+            e.preventDefault();
+            GAUSSPROJECT.add_task();
+        });
+
+
+        {#        Función útil para gantt_gtask_data.html  #}
+        $('body').on('change', '#id_predecessors', function (e) {
+            e.preventDefault();
+            var form_variables = $('.sending_predecessors').serialize();
+            $.post("/gantt_ajax/", form_variables, function (data) {
+            });
+        });
+
+        $('body').on('closed.zf.reveal', '#gtask_data', function (e) {
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'gantt_schedule', id: id},
+                    function (resp) {
+                        parse_gtasks(resp.tasks);
+                        setTimeout(function () {
+                            parse_glinks(resp.links);
+                        }, 1000)
+                    }, 'json');
+        });
+
+        $('body').on('click', '.gtask', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'gantt_task_data', id: id}, function (resp) {
+                $('#gtask_data').html(resp).foundation('open');
+                $('.predecessors').select2({
+                    theme: "foundation",
+                    placeholder: "Escribe parte del nombre de la tarea",
+                    minimumInputLength: 3,
+                    ajax: {
+                        url: "/gantt_ajax/",
+                        dataType: 'json',
+                        delay: 250,
+                        method: 'POST',
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page,
+                                action: 'seek_tasks',
+                                gbaseline: $('#baseline').val(),
+                                id: id
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: $.map(data, function (item) {
+                                    return {
+                                        text: item.text,
+                                        id: item.id
+                                    }
+                                })
+                            };
+                        }
+                    },
+                    templateResult: function (result) {
+                        return '<div class="select2-user-result">' + result.text + '</div>';
+                    },
+                    templateSelection: function (result) {
+                        return result.text;
+                    },
+                    escapeMarkup: function (markup) {
+                        return markup;
+                    }
+                });
+            });
+        });
+
+
+        $('body').on('moved.zf.slider', '#num_cols', function (e) {
+            var id = $(this).data('id');
+            var left = $('#left_num_cols').val();
+            var right = 12 - $('#left_num_cols').val();
+            $.post("/gantt_ajax/", {action: 'num_cols', id: id, left: left, right: right});
+            if (left > 0) {
+                $('.left-pane').alterClass('small-* medium-* large-*').addClass('small-' + left + ' medium-' + left + ' large-' + left).show();
+                $('.left-pane').alterClass('small-*').addClass('small-' + left).show();
+            } else {
+                $('.left-pane').hide();
+            }
+            if (right > 0) {
+                $('.right-pane').alterClass('small-* medium-* large-*').addClass('small-' + right + ' medium-' + right + ' large-' + right).show();
+                $('.right-pane').alterClass('small-*').addClass('small-' + right).show();
+            } else {
+                $('.right-pane').hide();
+            }
+        });
+
+        $('body').on('click', '.gantt_task_link', function (e) {
+            e.preventDefault();
+            $('#gtask_link').val($(this).data('id'));
+            $('#reveal_delete_link').foundation('open');
+        });
+
+        $('body').on('click', '#gtask_link_borrar', function (e) {
+            e.preventDefault();
+            var id = $('#gtask_link').val();
+            GAUSSPROJECT.remove_glink(id);
+            $('#reveal_delete_link').foundation('close');
+        });
+
+        $('body').on('click', '#gtask_link_cancelar', function (e) {
+            e.preventDefault();
+            $('#reveal_delete_link').foundation('close');
+        });
+
+
+        {# ################################################################################################# #}
+        {# These lines are in order to get dinamic glink between tasks #}
+
+
+        {#    ##################################################################################}
+
+        $('body').on('change', '.check_gtask', function (e) {
+            e.preventDefault();
+            {#            var id = $(this).val();#}
+            var pos = $(this).parent().parent().data('pos');
+            if ($('#rowl' + pos).hasClass('gtask_selected')) {
+                $('#rowl' + pos).removeClass('gtask_selected');
+                $('#rowr' + pos).removeClass('gtask_selected');
+            } else {
+                $('#rowl' + pos).addClass('gtask_selected');
+                $('#rowr' + pos).addClass('gtask_selected');
+            }
+
+            var numberOfChecked = $('.check_gtask:checked').length;
+            if (numberOfChecked > 0) {
+                gp_buttons({indent: 'show', dedent: 'show', trash: 'show'});
+            } else {
+                gp_buttons({indent: 'hide', dedent: 'hide', trash: 'hide'});
+            }
+        });
+
+        $('.trash_button').click(function (e) {
+            e.preventDefault();
+            var pk_gtasks = [];
+            $('.check_gtask:checked').each(function () {
+                var pk = $(this).val();
+                pk_gtasks.push(parseInt(pk));
+            });
+            GAUSSPROJECT.remove_gtasks(pk_gtasks);
+            gp_buttons({indent: 'hide', dedent: 'hide', trash: 'hide'});
+        });
+
+
+        $('.dedent_button').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'dedent', gtasks: $('.check_gtask:checked').serialize()},
+                    function (resp) {
+                        $('#gantt_schedule').html(resp);
+                    });
+        });
+
+        $('.indent_button').click(function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gantt_ajax/", {action: 'indent', gtasks: $('.check_gtask:checked').val()},
+                    function (resp) {
+                        $('#gantt_schedule').html(resp);
+                    });
+        });
+
+        {# *******************************  #}
+        {# The following lines detect if a gcolumn width is changed and they change all the cells of the same column #}
+        {# *******************************  #}
+        $('body').on('mousedown', '.gantt_list_column', function (event) {
+            GAUSSPROJECT.selected_gcolumn = $(this);
+            $('.menu_header').hide();
+            GAUSSPROJECT.initial_value = GAUSSPROJECT.selected_gcolumn.css('width');
+            GAUSSPROJECT.final_value = GAUSSPROJECT.initial_value;
+        });
+
+        $('body').on('mousemove', '.gantt_list_column', function (event) {
+            if (GAUSSPROJECT.selected_gcolumn) {
+                var w = GAUSSPROJECT.selected_gcolumn.css('width');
+                var column = GAUSSPROJECT.selected_gcolumn.data('colpk');
+                $('.col' + column).css('width', w);
+                GAUSSPROJECT.final_value = w;
+            }
+        });
+
+        $('body').on('mouseup', '.gantt_list_column', function (event) {
+            var w = parseInt(GAUSSPROJECT.selected_gcolumn.css('width'));
+            var colpk = GAUSSPROJECT.selected_gcolumn.data('colpk');
+            GAUSSPROJECT.update_server({action: 'gcolumn_width', colpk: colpk, width: w});
+            if ($(this).hasClass('gantt_header_column') && GAUSSPROJECT.initial_value == GAUSSPROJECT.final_value) {
+                $('#colmenu')
+                        .css('left', $(this).offset().left)
+                        .css('top', $(this).offset().top + 26)
+                        .css('min-width', w)
+                        .show()
+                        .css("z-index", 400);
+            }
+        });
+
+        $('body').on('mouseleave', '.menu_header_wrapper', function (e) {
+            $('.menu_header').hide();
+            GAUSSPROJECT.selected_gcolumn = null;
+        });
+
+        $('body').on('mouseover', '.item_menu_submenu', function (e) {
+            GAUSSPROJECT.insert_move_gcolumn_at = $(this).data('direction');
+            var w = parseInt($(this).css('width'));
+            $('#colsubmenu')
+                    .css('left', $(this).offset().left + w - 20)
+                    .css('top', $(this).offset().top - 100)
+                    .css('min-width', w)
+                    .show()
+                    .css("z-index", 400);
+        });
+        $('body').on('mouseover', '.item_main_menu', function (e) {
+            $('#colsubmenu').hide();
+            GAUSSPROJECT.insert_move_gcolumn_at = 'right';
+        });
+
+        {# *******************************  #}
+        {# End of code lines to change width of a column and menu header #}
+        {# *******************************  #}
+
+
+        {#        $('body').on('propertychange input', '.gantt_list_column', function (e) {#}
+        {#            var pos = $(this).parent().data('pos');#}
+        {#            var content = $(this).data('content');#}
+        {#            var id = $(this).data('id');#}
+        {#            var value = $(this).text();#}
+        {#            GAUSSPROJECT.update_gtask(pos, {id: id, content: content, value: value});#}
+        {#        });#}
+
+
+        {#        $('body').on('propertychange input', '.change_time', function (e) {#}
+        {#            e.preventDefault();#}
+        {#            var id = $(this).data('id');#}
+        {#            var duration = $(this).val();#}
+        {#            var type = $(this).data('type');#}
+        {#            $.post("/gantt_ajax/", {action: 'change_time', id: id, duration: duration, type: type}, function (data) {#}
+        {#                if (type != 'estimate') {#}
+        {#                    $('#estimate_time').val(data.estimate + 'd');#}
+        {#                }#}
+        {#                if (type != 'optimistic') {#}
+        {#                    $('#optimistic_time').val(data.optimistic + 'd');#}
+        {#                }#}
+        {#                if (type != 'likely') {#}
+        {#                    $('#likely_time').val(data.likely + 'd');#}
+        {#                }#}
+        {#                if (type != 'pessimistic') {#}
+        {#                    $('#pessimistic_time').val(data.pessimistic + 'd');#}
+        {#                }#}
+        {#                if (type == 'estimate') {#}
+        {#                    $(".time-check").show().delay(1500).fadeOut();#}
+        {#                } else {#}
+        {#                    $("#" + type + "-check").show().delay(1500).fadeOut();#}
+        {#                    $("#estimate-check").show().delay(1500).fadeOut();#}
+        {#                }#}
+        {#            });#}
+        {#        });#}
+
+
+        $('body').on('blur', '.gantt_list_column', function () {
+            var gtaskpk = $(this).data('id');
+            var value = $(this).text();
+            var gcolpk = $(this).data('colpk');
+            var start = new Date().getTime();
+            GAUSSPROJECT.update_cell(gtaskpk, gcolpk, value);
+            var end = new Date().getTime();
+            var time = end - start;
+            console.log('Execution total time: ' + time);
+        });
+
+        $('body').on('focus', '.gantt_list_column', function () {
+            $(this).selectText();
+        });
+
+        $('body').on('keydown', '.gantt_list_column', function (e) {
+            var colpk = parseInt($(this).data('colpk'));
+            switch (e.which) {
+                case 38: // up
+                    var cell = $(this).parent().prev().find('[data-colpk=' + colpk + ']');
+                    if (cell.length > 0) {
+                        cell.focus();
+                    } else {
+                        console.log('There is not a task above');
+                    }
+                    break;
+                case 40: // down
+                    var cell = $(this).parent().next().children('[data-colpk=' + colpk + ']');
+                    if (cell.length > 0) {
+                        cell.focus();
+                    } else {
+                        GAUSSPROJECT.add_task();
+                    }
+                    break;
+                default:
+                    return;
+            }
+            e.preventDefault(); // prevent when up place caret at beginning
+        });
+
+        $('body').keydown(function (e) {
+            if (e.which == 27) {
+                e.preventDefault();
+                $('#colmenu').hide();
+                $('#colsubmenu').hide();
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,559 @@
+{% load static %}
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>GAUSS</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.png">
+    <link rel="stylesheet" href="/static/foundation-6/css/foundation.css"/>
+    <link rel="stylesheet" href="/static/font-awesome-4.5.0/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="/static/select2/css/select2.css">
+    <link rel="stylesheet" href="/static/css/select2-foundation-theme.min.css">
+    <link rel="stylesheet" href="/static/datepicker/css/foundation-datepicker.min.css">
+
+    {% block head %}
+    {% endblock %}
+
+
+    <style>
+        .app_title {
+            text-align: center;
+            color: #2199e8;
+            font-weight: 800;
+        }
+    </style>
+</head>
+
+<body>
+
+{#<div class="off-canvas-wrapper">#}
+{#  <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>#}
+{#    <!-- off-canvas title bar for 'small' screen -->#}
+{#    <div class="title-bar" data-responsive-toggle="widemenu" data-hide-for="medium">#}
+{#      <div class="title-bar-left">#}
+{#        <button class="menu-icon" type="button" data-open="offCanvasLeft"></button>#}
+{#        <span class="title-bar-title">Foundation</span>#}
+{#      </div>#}
+{#      <div class="title-bar-right">#}
+{#        <span class="title-bar-title">Login</span>#}
+{#        <button class="menu-icon" type="button" data-open="offCanvasRight"></button>#}
+{#      </div>#}
+{#    </div>#}
+{#    <!-- off-canvas left menu -->#}
+{#    <div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas>#}
+{#      <ul class="vertical dropdown menu" data-dropdown-menu>#}
+{#        <li><a href="left_item_1">Left item 1</a></li>#}
+{#        <li><a href="left_item_2">Left item 2</a></li>#}
+{#        <li><a href="left_item_3">Left item 3</a></li>#}
+{#      </ul>#}
+{#    </div>#}
+{#    <!-- off-canvas right menu -->#}
+{#    <div class="off-canvas position-right" id="offCanvasRight" data-off-canvas data-position="right">#}
+{#      <ul class="vertical dropdown menu" data-dropdown-menu>#}
+{#        <li><a href="right_item_1">Right item 1</a></li>#}
+{#        <li><a href="right_item_2">Right item 2</a></li>#}
+{#        <li><a href="right_item_3">Right item 3</a></li>#}
+{#      </ul>#}
+{#    </div>#}
+{#    <!-- "wider" top-bar menu for 'medium' and up -->#}
+{#    <div id="widemenu" class="top-bar">#}
+{#      <div class="top-bar-left">#}
+{#        <ul class="dropdown menu" data-dropdown-menu>#}
+{#          <li class="menu-text">Foundation</li>#}
+{#          <li class="has-submenu">#}
+{#            <a href="#">Item 1</a>#}
+{#            <ul class="menu submenu vertical" data-submenu>#}
+{#              <li><a href="left_wide_11">Left wide 1</a></li>#}
+{#              <li><a href="left_wide_12">Left wide 2</a></li>#}
+{#              <li><a href="left_wide_13">Left wide 3</a></li>#}
+{#            </ul>#}
+{#          </li>#}
+{#          <li class="has-submenu">#}
+{#            <a href="#">Item 2</a>#}
+{#            <ul class="menu submenu vertical" data-submenu>#}
+{#              <li><a href="left_wide_21">Left wide 1</a></li>#}
+{#              <li><a href="left_wide_22">Left wide 2</a></li>#}
+{#              <li><a href="left_wide_23">Left wide 3</a></li>#}
+{#            </ul>#}
+{#          </li>#}
+{#        </ul>#}
+{#      </div>#}
+{#      <div class="top-bar-right">#}
+{#        <ul class="menu">#}
+{#          <li><input type="search" placeholder="Search"></li>#}
+{#          <li><button class="button">Search</button></li>#}
+{#        </ul>#}
+{#      </div>#}
+{#    </div>#}
+{#    <!-- original content goes in this container -->#}
+{#    <div class="off-canvas-content" data-off-canvas-content>#}
+{#      fasfasdfaadfadf#}
+{#    </div>#}
+{#  <!-- close wrapper, no more content after this -->#}
+{#  </div>#}
+{#</div>#}
+
+<div class="off-canvas-wrapper">
+    <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+        <div class="off-canvas position-left reveal-for-large" id="offCanvasLeft" data-off-canvas>
+            <div class="row" style="padding-top: 15px;padding-bottom: 20px">
+                <div class="large-6 small-6 medium-6 columns">
+                    <img src="/static/images/logo_gauss_project_acceso.png" height="30" width="109">
+                </div>
+                <div class="large-6 small-6 medium-6 columns hide-for-small-only">
+                    <a href="#" class="toggle_leftCanvas" id="toggle_leftCanvas_side">
+                        <i class="fa fa-hand-o-left"></i> <i class="fa fa-bars"></i> </a>
+                </div>
+            </div>
+            <ul class="vertical menu" data-accordion-menu>
+                <li>
+                    <a href="#" style="font-variant: small-caps;"><b>Empresa</b></a>
+                    <ul class="menu vertical nested">
+                        <li><a href="#">Datos</a></li>
+                        <li><a href="#" style="font-variant: small-caps;font-weight: 700;">Recursos</a>
+                            <ul class="menu vertical nested">
+                                <li><a href="#">Recursos humanos</a></li>
+                                <li><a href="#">Recursos materiales</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Calendarios</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" style="font-variant: small-caps;"><b>Proyectos</b></a>
+                    <ul class="menu vertical nested">
+                        <li><a href="/gprojects/">Mis proyectos</a></li>
+                        <li><a href="#">Repositorio</a></li>
+                        <li><a href="#">Lessons learned</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" style="font-variant: small-caps;"><b>Bases de precios</b></a>
+                    <ul class="menu vertical nested">
+                        <li><a href="#">Listado</a></li>
+                        <li><a href="#">Cargar nueva base</a></li>
+                        <li><a href="#">Crear nueva base</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Item 2</a></li>
+            </ul>
+        </div>
+        <div class="off-canvas position-right" id="offCanvasRight" data-off-canvas data-position="right">
+            <ul class="dropdown menu vertical" data-dropdown-menu>
+                {% for action in actions %}
+                    <li style="padding-bottom: 10px;" title="{{ action.title }}">
+                        <a class="button primary {{ action.name }}_button" href="{{ action.href }}"><i
+                                class="fa fa-{{ action.name }}"></i> {{ action.text }}</a>
+                    </li>
+                {% endfor %}
+                <li>
+                    <a class="button secondary" href="#">One</a>
+                    <ul class="menu vertical">
+                        <li><a href="#">One</a></li>
+                        <li><a href="#">Two</a></li>
+                        <li><a href="#">Three</a></li>
+                    </ul>
+                </li>
+                <li><a class="button secondary" href="/user_data/">
+                    <i class="fa fa-user"></i> Mis datos</a></li>
+                <li><a class="button secondary" href="/">
+                    <i class="fa fa-sign-out"></i> Salir</a></li>
+            </ul>
+        </div>
+        <div class="off-canvas-content" data-off-canvas-content>
+            <div id="top-bar-sticky" class="top-bar" style="z-index: 1000;">
+                <div class="top-bar-left">
+                    <div style="float: left;">
+                        <ul class="dropdown menu" data-dropdown-menu>
+                            <li class="menu-text hide-for-small-only" style="padding: 0!important;display: none;"><img
+                                    src="/static/images/logo_gauss_project_acceso.png" height="30" width="109"></li>
+                            <li>
+                                <a class="toggle_leftCanvas show-for-medium" id="toggle_leftCanvas_content"
+                                   style="display: none;">
+                                    <i class="fa fa-hand-o-right"></i> <i class="fa fa-bars"></i>
+                                </a>
+                            </li>
+                            <li><a href="#" data-open="offCanvasLeft" class="show-for-small-only"><i
+                                    class="fa fa-bars"></i> Menu</a></li>
+                        </ul>
+                    </div>
+                    <div style="float: right;" class="show-for-small-only right">
+                        <ul class="dropdown menu" data-dropdown-menu>
+                            <li style="padding-left: 100px;"><a href="#" data-open="offCanvasRight">
+                                <i class="fa fa-cogs"> </i> Acciones </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="top-bar-right hide-for-small-only">
+                    <ul class="dropdown menu " data-dropdown-menu>
+                        {% for action in actions %}
+                            {% if action.type == 'button' %}
+                                <li style="padding-right: 10px;" title="{{ action.title }}">
+                                    <a class="button hide primary {{ action.name }}_button" href="{{ action.href }}"><i
+                                            class="fa fa-{{ action.name }}"></i> {{ action.text }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        {% for action in actions %}
+                            {% if action.type == 'menu' %}
+                                <li style="padding-right: 10px;" title="{{ action.title }}">
+                                    <a class="button hide primary {{ action.name }}_button" href=""><i
+                                            class="fa fa-{{ action.name }}"></i> {{ action.text }}</a>
+                                    <ul class="menu vertical" style="z-index:1000;">
+                                        {% for subaction in actions %}
+                                            {% if subaction.type == action.name %}
+                                                <li style="padding-right: 10px;z-index: 1000;"
+                                                    title="{{ subaction.title }}">
+                                                    <a class="{{ subaction.name }}_button hide"
+                                                       href="{{ subaction.href }}"><i
+                                                            class="fa fa-{{ subaction.name }}"></i> {{ subaction.text }}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        <li><a class="button secondary" href="/my_data/">
+                            <i class="fa fa-user"></i> Mis datos</a></li>
+                        <li><a class="button secondary" href="/">
+                            <i class="fa fa-sign-out"></i> Salir</a></li>
+                    </ul>
+
+                </div>
+            </div>
+
+
+            {% block contenido %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+</body>
+
+
+{#<input type="hidden" name="are_there_warnings" id="are_there_warnings" value="0">#}
+{#<div class="show-for-medium-up">#}
+{#    <div class="cabecera" style="leftmargin:0px;" id="cabecera_gauss">#}
+{#        <div class="cabecera_personal">#}
+{#            <p class="cabecera"><i class="fa fa-user"></i> {{ request.session.gauser_extra.gauser.get_full_name }}</p>#}
+{#            <p class="cabecera"><i class="fa fa-briefcase"></i> {% if request.session.gauser_extra.cargo %}#}
+{#                {{ request.session.gauser_extra.cargo }} {% else %}#}
+{#                {{ request.session.gauser_extra.perfiles.all.0 }} {% endif %}</p>#}
+{#            <p class="cabecera">{% if request.session.gauser_extra|has_perfiles:'11' %}<i class="fa fa-group"></i>#}
+{#                {{ request.session.gauser_extra.subentidad.nombre }}{% endif %}</p>#}
+{#        </div>#}
+{#        <div class="cabecera_gauss">#}
+{#            <div style="padding-top:3px;float:left;height:43px;">#}
+{#                <img src="/static/images/logo_gauss_project_acceso.png" id="logo_gauss_project"/>#}
+{#            </div>#}
+{#            <div>#}
+{#                <span class="cabecera">Gestión Interna del Centro</span><br>#}
+{#                <a class="cabecera" href="{{ request.session.gauser_extra.centro.web }}">#}
+{#                    <i class="fa fa-info-circle pulsar"#}
+{#                       title="Datos de la centro"></i> {{ request.session.gauser_extra.centro.name }}#}
+{#                    ({{ request.session.gauser_extra.centro.code }})#}
+{#                </a>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="cabecera_institucional">#}
+{#            <div style="padding-top:3px;float:right;height:43px;">#}
+{#                <a href="http://www.larioja.org">#}
+{#                    <img id="logo_larioja" src="/static/images/logo_larioja.png" align="right"#}
+{#                         align="right" class="cabecera"/></a>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#<div class="off-canvas-wrap" data-offcanvas>#}
+{#    <div class="sticky" id="barra_options_menu">#}
+{#        <nav class="top-bar" data-topbar data-options="is_hover: true">#}
+{#            <ul class="title-area">#}
+{#                <!-- Title Area -->#}
+{#                <li class="name show-for-medium-down">#}
+{#                    <h1><a class="left-off-canvas-toggle" href="#">Menú</a></h1>#}
+{#                </li>#}
+{#                <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->#}
+{#                <li class="toggle-topbar menu-icon"><a href="">Menú</a></li>#}
+{#            </ul>#}
+{#            <section class="top-bar-section">#}
+{#                {{ request.session.lateral }}#}
+{#                <ul class="title-area">#}
+{#                    <li><a class="left-off-canvas-toggle">Menú</a></li>#}
+{#                    <li class="name spinner" id="ajax-loader" style="display:none;">#}
+{#                        <h1 style="color: white;">Procesando&nbsp;<i class="fa fa-spinner fa-spin"></i></h1>#}
+{#                    </li>#}
+{#                </ul>#}
+{#                <!-- Right Nav Section -->#}
+{#                <ul class="right">#}
+{#                    <li class="divider"></li>#}
+{#                <li class="has-form" style="z-index: 1000;padding-right: 100px;padding-top: 5px;">#}
+{#                    <span id="SecondsUntilExpire" style="color: #00a6ac;font-weight: 700"></span>#}
+{#                </li>#}
+{#                <li style="background-color: #eeeeee!important;" ><a href="#"> <span id="SecondsUntilExpire" ></span></a></li>#}
+{#                    {% for icono in actions %}#}
+{#                        {% if request.session.gauser_extra|has_permiso:icono.permiso %}#}
+{#                            {% if icono|length == 4 and not icono.tipo %}#}
+{#                                <li data-tooltip class="has-form has-tip hide" id="{{ icono.nombre }}_li"#}
+{#                                    data-options="disable_for_touch:true" title="{{ icono.title }}" style="z-index: 1000;"><a#}
+{#                                        id="{{ icono.nombre }}_sign" href="#"#}
+{#                                        class="button secondary disabled round"><i#}
+{#                                        class="fa fa-{{ icono.nombre }}"></i><strong> {{ icono.texto }}</strong></a>#}
+{#                                </li>#}
+{#                            {% elif icono|length == 5 and not icono.tipo %}#}
+{#                                <li data-tooltip class="has-form has-tip" title="{{ icono.title }}"><a#}
+{#                                        data-options="disable_for_touch:true" id="{{ icono.nombre }}_sign" href="#"#}
+{#                                        class="button disabled secondary round"#}
+{#                                        ><i class="fa fa-{{ icono.nombre }}"><span#}
+{#                                        style="font-size:70%;"><i class="fa fa-{{ icono.nombre2 }}"></i></span></i>#}
+{#                                    <strong> {{ icono.texto }}</strong></a>#}
+{#                                </li>#}
+{#                            {% elif icono|length == 2 and not icono.tipo %}#}
+{#                                <li class="has-form">#}
+{#                                    <div class="row collapse">#}
+{#                                        <div class="large-11 small-11 columns"><input size="25"#}
+{#                                                                                      style="height: 1.95rem;"#}
+{#                                                                                      id="auto_lista"#}
+{#                                                                                      type="text"#}
+{#                                                                                      placeholder="{{ icono.title }}">#}
+{#                                        </div>#}
+{#                                        <div class="large-1 small-1 columns"><a style="height: 1.95rem;" href="#"#}
+{#                                                                                class="secondary button expand lupa_"><i#}
+{#                                                class="fa fa-search"></i></a></div>#}
+{#                                    </div>#}
+{#                                </li>#}
+{#                            {% elif icono|length == 3 and not icono.tipo %}#}
+{#                                <li class="has-dropdown">#}
+{#                                    <a class="secondary button round" href="#"><i class="fa fa-filter"></i><strong>#}
+{#                                        Filtrar</strong> </a>#}
+{#                                    <ul class="dropdown">#}
+{#                                        {% for option in icono.options %}#}
+{#                                            <li><a id="option___{{ option.0 }}">{{ option.1 }}</a></li>#}
+{#                                        {% endfor %}#}
+{#                                    </ul>#}
+{#                                </li>#}
+{#                            {% endif %}#}
+{#                            {% if icono.tipo == 'button' %}#}
+{#                                <li data-tooltip class="has-form has-tip hide" id="{{ icono.nombre }}_li"#}
+{#                                    data-options="disable_for_touch:true" title="{{ icono.title }}"><a#}
+{#                                        id="{{ icono.nombre }}_sign" href="#"#}
+{#                                        class="button secondary disabled round"><i#}
+{#                                        class="fa fa-{{ icono.nombre }}"></i><strong> {{ icono.texto }}</strong></a>#}
+{#                                </li>#}
+{#                            {% elif icono.tipo == 'button2' %}#}
+{#                                <li data-tooltip class="has-form has-tip hide" id="{{ icono.nombre }}_li"#}
+{#                                    data-options="disable_for_touch:true" title="{{ icono.title }}"><a#}
+{#                                        id="{{ icono.nombre }}_sign" href="#"#}
+{#                                        class="button disabled secondary round"#}
+{#                                        ><i class="fa fa-{{ icono.nombre }}"><span#}
+{#                                        style="font-size:70%;"><i class="fa fa-{{ icono.nombre2 }}"></i></span></i>#}
+{#                                    <strong> {{ icono.texto }}</strong></a>#}
+{#                                </li>#}
+{#                            {% elif icono.tipo == 'search' %}#}
+{#                                <li class="has-form">#}
+{#                                    <div class="row collapse">#}
+{#                                        <div class="large-11 small-11 columns"><input size="25"#}
+{#                                                                                      style="height: 1.95rem;"#}
+{#                                                                                      id="auto_lista"#}
+{#                                                                                      type="text"#}
+{#                                                                                      placeholder="{{ icono.title }}">#}
+{#                                        </div>#}
+{#                                        <div class="large-1 small-1 columns"><a style="height: 1.95rem;" href="#"#}
+{#                                                                                class="secondary button expand lupa_"><i#}
+{#                                                class="fa fa-search"></i></a></div>#}
+{#                                    </div>#}
+{#                                </li>#}
+{#                            {% elif icono.tipo == 'select' %}#}
+{#                                <li class="has-dropdown">#}
+{#                                    <a class="secondary button round" href="#"><i class="fa fa-filter"></i><strong>#}
+{#                                        Filtrar</strong> </a>#}
+{#                                    <ul class="dropdown">#}
+{#                                        {% for option in icono.options %}#}
+{#                                            <li><a id="option___{{ option.0 }}">{{ option.1 }}</a></li>#}
+{#                                        {% endfor %}#}
+{#                                    </ul>#}
+{#                                </li>#}
+{#                            {% endif %}#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
+{#                    <li class="divider"></li>#}
+{#                    <li class="vertical_line"><a href="{% if request.session.gauser_extra|has_perfiles:'12' %}/profesor/{% elif request.session.gauser_extra|has_perfiles:'13,14,15' %}/no_docente/{% elif request.session.gauser_extra|has_perfiles:'21' %}/padre/{% elif request.session.gauser_extra|has_perfiles:'22' %}/alumno/{% endif %}"><i class="fa fa-user"></i> <strong>Mis datos</strong></a></li>#}
+{#                    <li><a href="/"><i class="fa fa-sign-out"></i> <strong>Salir</strong></a></li>#}
+{#                </ul>#}
+{#            </section>#}
+{#        </nav>#}
+{#    </div>#}
+{#    <div class="inner-wrap">#}
+{#        <aside class="left-off-canvas-menu">#}
+{#            <!-- whatever you want goes here -->#}
+{#            {{ request.session.lateral_foundation }}#}
+{#        </aside>#}
+{#        <div style="width: 100% ! important;margin-left: auto;margin-right: auto;">#}
+{#            <div class="columns large-2 hide-for-small hide-for-medium">#}
+{#                <nav>#}
+{#                    <ul class="side-nav">#}
+{#                        {{ request.session.lateral_foundation }}#}
+{#                    </ul>#}
+{#                </nav>#}
+{#            </div>#}
+{#            <div class="Principal columns large-10 medium-10" id="Principal">#}
+{#                <div class="row">#}
+{#                    <div class="large-12 columns">#}
+{#                        <div class="Contenido" id="Contenido">#}
+{#                            {% block contenido %}{% endblock %}#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <!-- close the off-canvas menu -->#}
+{#        <a class="exit-off-canvas"></a>#}
+{#    </div>#}
+{#</div>#}
+{#<div id="f_deshabilitada" class="reveal-modal small" data-reveal>#}
+{#    <h3>Función deshabilitada</h3>#}
+{#    <p class="lead">Los botones con el color que acabas de pulsar están deshabilitados.</p>#}
+{#    <a class="close-reveal-modal">&#215;</a>#}
+{#</div>#}
+{#<div id="reveal_modal_aviso" class="reveal-modal small" data-reveal>#}
+{#    <div id="reveal_lista_avisos"></div>#}
+{#    <a class="close-reveal-modal reveal_modal_aviso">&#215;</a>#}
+{#    <a id="aceptar_reveal_modal_aviso" class="button secondary">Aceptar</a>#}
+{#</div>#}
+{#<div id="faltan_campos" class="reveal-modal small" data-reveal>#}
+{#    <h3>Faltan campos por rellenar</h3>#}
+{#    <ul class="lead" id="texto_faltan_campos"></ul>#}
+{#    <a class="close-reveal-modal">&#215;</a>#}
+{#</div>#}
+{#<div id="mensajes_gauss" class="reveal-modal small" data-reveal>#}
+{#    <h3 id="mensajes_gauss_title"></h3>#}
+{#    <ul class="lead" id="mensajes_gauss_texto"></ul>#}
+{#    <p id="mensajes_gauss_buttons"></p>#}
+{#    <a class="close-reveal-modal">&#215;</a>#}
+{#</div>#}
+
+
+<!-- Footer -->
+
+{#<footer class="row">#}
+{#    <div class="pagination-centered">#}
+{#        <ul class="pagination">#}
+{#            <li><a href="/politica_privacidad/">Política de privacidad</a></li>#}
+{#            <li>|</li>#}
+{#            <li><a href="/aviso_legal/">Aviso legal</a></li>#}
+{#            <li>|</li>#}
+{#            <li><a href="mailto:info@gaumentada.es"><i class="fi fi-mail"></i> info@gaumentada.es</a></li>#}
+{#        </ul>#}
+{#    </div>#}
+{#</footer>#}
+
+
+<script src="/static/foundation-6/js/vendor/jquery.min.js"></script>
+<script src="/static/foundation-6/js/foundation.min.js"></script>
+<script src="/static/js/js.cookie.js"></script>
+<script src="/static/js/jquery.sticky.js"></script>
+<script src="/static/ckeditor/ckeditor.js"></script>
+<script src="/static/select2/js/select2.full.min.js"></script>
+<script src="/static/datepicker/js/foundation-datepicker.js"></script>
+<script src="/static/datepicker/js/locales/foundation-datepicker.es.js"></script>
+
+
+<script>
+    var csrftoken = Cookies.set('csrftoken');
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
+    $('#top-bar-sticky').sticky({topSpacing: 0});
+    $(document).foundation();
+
+    $('.toggle_leftCanvas').click(function (e) {
+        e.preventDefault();
+        if (Foundation.MediaQuery.atLeast('medium')) {
+            if ($('#offCanvasLeft').hasClass('reveal-for-large')) {
+                $('#offCanvasLeft').removeClass('reveal-for-large');
+            }
+            else {
+                $('#offCanvasLeft').addClass('reveal-for-large');
+            }
+            $('#toggle_leftCanvas_content').toggle();
+            $('#toggle_leftCanvas_side').toggle();
+            $('.menu-text').toggle();
+        }
+
+    });
+
+
+    var IDLE_TIMEOUT = 600000; //seconds
+    var CHECK_TIME = 5000; //miliseconds
+    var ORIGINAL_CHECK_TIME = CHECK_TIME;
+    var _idleSecondsCounter = 0;
+    var set_interval_id = window.setInterval(CheckIdleTime, CHECK_TIME);
+
+    function re_adjust_check_time() {
+        _idleSecondsCounter = 0;
+        CHECK_TIME = ORIGINAL_CHECK_TIME;
+        window.clearInterval(set_interval_id);
+        set_interval_id = window.setInterval(CheckIdleTime, CHECK_TIME);
+        var oPanel = document.getElementById("SecondsUntilExpire");
+        if (oPanel) {
+            oPanel.innerHTML = "";
+        }
+    }
+
+    document.onclick = re_adjust_check_time;
+    document.onmousemove = re_adjust_check_time;
+    document.onkeypress = re_adjust_check_time;
+
+
+    function CheckIdleTime() {
+        window.console.log('tiempo:' + IDLE_TIMEOUT);
+        _idleSecondsCounter = _idleSecondsCounter + CHECK_TIME / 1000;
+        var oPanel = document.getElementById("SecondsUntilExpire");
+        if (oPanel) {
+            oPanel.innerHTML = "Expira en " + (IDLE_TIMEOUT - _idleSecondsCounter) + "s";
+        }
+        if (_idleSecondsCounter >= IDLE_TIMEOUT - 11 && CHECK_TIME > 1000) {
+            CHECK_TIME = 1000;
+            window.clearInterval(set_interval_id);
+            set_interval_id = window.setInterval(CheckIdleTime, CHECK_TIME);
+            window.console.log(CHECK_TIME);
+        }
+        if (_idleSecondsCounter >= IDLE_TIMEOUT) {
+            document.location.href = "/";
+        }
+    }
+
+
+    function gp_buttons(actions) {
+        for (key in actions) {
+            if (actions[key] == 'show') {
+                $('.' + key + '_button').removeClass('hide');
+            } else {
+                $('.' + key + '_button').addClass('hide');
+            }
+        }
+        {#    for (i in actions) {#}
+        {#        var p = actions[i].split('_');#}
+        {#        if (p[0] == 'h') {#}
+        {#            $("." + p[1] + "_button").addClass('hide');#}
+        {#        } else {#}
+        {#            $("." + p[1] + "_button").removeClass('hide');#}
+        {#        }#}
+        {#    }#}
+    }
+</script>
+
+{% block final %}{% endblock %}
+</body>
+</html>

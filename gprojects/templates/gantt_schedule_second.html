@@ -1,0 +1,159 @@
+{% load gproject_extras %}
+<div class="columns small-{{ gbaseline.left_side }} left-pane" style="overflow-x: auto;margin-top: -25px;">
+
+    <div class="gantt_grid" style="width: 389px;">
+        <div class="gantt_grid_scale" style="height: 59px; line-height: 58px; width: 389px;">
+            <div column_id="text" style="width:226px;" class="gantt_grid_head_cell gantt_grid_head_text  ">Task name
+            </div>
+            <div column_id="start_time" style="width:60px;" class="gantt_grid_head_cell gantt_grid_head_start_time  ">
+                Start time
+            </div>
+            <div column_id="duration" style="width:60px;" class="gantt_grid_head_cell gantt_grid_head_duration  ">
+                Duration
+            </div>
+            <div column_id="add" style="width:43px;"
+                 class="gantt_grid_head_cell gantt_grid_head_add gantt_last_cell "></div>
+        </div>
+        <div class="gantt_grid_data" style="width: 389px;" data-layer="true">
+            {% for gtask in gbaseline.gtasks %}
+                <div class="gantt_row" id="row{{ gtask.id }}" data-id="{{ gtask.id }}"
+                     style="height: {{ gtask.row_height }}px; line-height: {{ gtask.row_height }}px;">
+                    <div style="width:226px;position:relative;" class="gantt_cell">
+                        <div class="gantt_tree_content">
+                            <input class="check_gtask" type="checkbox" name="gtasks" value="{{ gtask.id }}"
+                                   data-id="{{ gtask.id }}">
+                            <a style="position:absolute;left: {{ gtask.tree_depth|multiply:12|add:28 }}px;" class="open-close" data-id="{{ gtask.id }}">
+                                <i class="fa fa-{{ gtask.open_close }}-square-o"></i></a>
+                            <a style="position:absolute;left: {{ gtask.tree_depth|multiply:12|add:40 }}px;" class="gtask" id="name{{ gtask.id }}"
+                               data-id="{{ gtask.id }}">{{ gtask.name }}</a>
+                        </div>
+                    </div>
+                    <div style="width:60px;text-align:center;" class="gantt_cell">
+                        <div class="gantt_tree_content">{{ gtask.early_start }}</div>
+                    </div>
+                    <div style="width:60px;text-align:center;" class="gantt_cell">
+                        <div class="gantt_tree_content">{{ gtask.estimate_time }}</div>
+                    </div>
+                    <div style="width:43px;" class="gantt_cell gantt_last_cell">
+                        <div class="gantt_add"></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    {#    <div id="task_list">#}
+    {#        <div style="white-space: nowrap;border-bottom: 1px solid #eeeeee;height: 60px;"#}
+    {#             title="Work Breackdown Structure">#}
+    {#            WBS#}
+    {#        </div>#}
+    {#        {% for gtask in gbaseline.gtasks %}#}
+    {#            <div>#}
+    {#                <a class="gtask" id="name{{ gtask.id }}" data-id="{{ gtask.id }}">{{ gtask.name }}</a>#}
+    {#            </div>#}
+    {#        {% endfor %}#}
+    {#    </div>#}
+    <div>
+        <a class="button" id="add_gtask" data-id="{{ gbaseline.id }}"><i class="fa fa-plus"></i> Task</a>
+    </div>
+</div>
+
+<div class="columns small-{{ gbaseline.right_side }} right-pane" style="overflow-x: auto;margin-top: -25px;">
+    {#    <div style="white-space: nowrap;height: 60px;width: {{ gbaseline.project_num_days|multiply:gbaseline.scale }}px;position: relative;">#}
+    <div style="white-space: nowrap;height: {{ gbaseline.gtask_set.all|length|multiply:30 }}px;width: 1680px;border-left: 1px solid #ebebeb">
+        <div class="gantt_task_scale" style="height: 59px; width: 1680px;">
+            <div style="height:29px;line-height:29px" class="gantt_scale_line">
+                {% for month in gbaseline.project_dates %}
+                    {% if forloop.last %}
+                        <div style="width:{{ month|length|multiply:gbaseline.scale }}px;"
+                             class="gantt_scale_cell gantt_last_cell">{{ month.0|date:'m' }}</div>
+                    {% else %}
+                        <div style="width:{{ month|length|multiply:gbaseline.scale }}px;"
+                             class="gantt_scale_cell">{{ month.0|date:'m' }}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {#            <div style="height:29px;line-height:29px" class="gantt_scale_line">#}
+            {#                {% for week in gbaseline.weeks %}#}
+            {#                    {% if forloop.last %}#}
+            {#                        <div style="width:210px;" class="gantt_scale_cell gantt_last_cell">Week #17</div>#}
+            {#                    {% else %}#}
+            {#                        <div style="width:490px;" class="gantt_scale_cell">Week #16</div>#}
+            {#                    {% endif %}#}
+            {#                {% endfor %}#}
+            {#            </div>#}
+            <div style="height:30px;line-height:30px" class="gantt_scale_line">
+                {% for month in gbaseline.project_dates %}
+                    {% for day in month %}
+                        {% if forloop.last %}
+                            <div style="width:{{ gbaseline.scale }}px;"
+                                 class="gantt_scale_cell gantt_last_cell">{{ day|date:"d" }}</div>
+                        {% elif day.weekend %}
+                            <div style="width:{{ gbaseline.scale }}px;"
+                                 class="gantt_scale_cell weekend">{{ day|date:"d" }}</div>
+                        {% else %}
+                            <div style="width:{{ gbaseline.scale }}px;"
+                                 class="gantt_scale_cell">{{ day|date:"d" }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {#                <div class="gantt_data_area" style="width: 1680px;position: relative;">#}
+        {#                    <div class="gantt_task_bg" data-layer="true" style="width: 1680px; position: absolute;">#}
+        {#                        {% for gtask in gbaseline.gtasks %}#}
+        {#                            <div class="gantt_task_row {% if odd %} odd {% endif %}" style="height: 28px;" task_id="1">#}
+        {#                                {% for day in gbaseline.days %}#}
+        {#                                    <div style="width: 70px;" class="gantt_task_cell"></div>#}
+        {#                                    <div style="width: 70px;" class="gantt_task_cell weekend"></div>#}
+        {#                                {% endfor %}#}
+        {#                            </div>#}
+        {#                        {% endfor %}#}
+        {#                    </div>#}
+        {#                </div>#}
+
+
+        <div class="gantt_links_area" data-layer="true" style="width: 1680px;position: relative;">
+            {% for link in gbaseline.gtask_link_set.all %}
+                <div class="gantt_task_link" data-id="{{ link.id }}">
+                    {% for a in link.path %}
+                        <div style="top: {{ a.top_w }}px; left: {{ a.left_w }}px; height: {{ a.height_w }}px; width: {{ a.width_w }}px;"
+                             class="gantt_line_wrapper">
+                            <div style="height: {{ a.height_l }}px; width: {{ a.width_l }}px; margin-top: {{ a.margin }}px; margin-left: {{ a.margin }}px;"
+                                 class="gantt_link_line_left"></div>
+                        </div>
+                        {% if forloop.last %}
+                            <div style="top: {{ a.top_a }}px; left: {{ a.left_a }}px;"
+                                 class="gantt_link_arrow gantt_link_arrow_right"></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="gantt_bars_area" data-layer="true" style="width: 1680px;position: relative;">
+            {% for gtask in gbaseline.gtasks %}
+                <div class="row">
+                <div task_id="{{ gtask.pos }}" data-id="{{ gtask.id }}" class="gantt_task_line columns large-12"
+                     style="left: {{ gtask.left }}px; top: {{ gtask.top }}px; height: {{ gtask.height }}px; line-height: {{ gtask.height }}px; width: {{ gtask.width }}px;margin-top: {{ gtask.margin }}px;margin-bottom: {{ gtask.margin }}px">
+                    <div style="width: {{ gtask.width_progress }}px;" class="gantt_task_progress"></div>
+                    <div style="left: {{ gtask.width_progress }}px;" class="gantt_task_progress_drag"></div>
+                    <div class="gantt_task_content">{{ gtask.name }}</div>
+                    <div class="gantt_task_drag task_right"></div>
+                    <div class="gantt_task_drag task_left"></div>
+                    <div class="gantt_link_control task_right" data-gtask="{{ gtask.id }}"
+                         style="height: {{ gtask.height }}px; line-height: {{ gtask.height }}px;">
+                        <div class="gantt_link_point task_right" data-gtask="{{ gtask.id }}"></div>
+                    </div>
+                    <div class="gantt_link_control task_left" data-gtask="{{ gtask.id }}"
+                         style="height: {{ gtask.height }}px; line-height: {{ gtask.height }}px;">
+                        <div class="gantt_link_point task_left" data-gtask="{{ gtask.id }}"></div>
+                    </div>
+                </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

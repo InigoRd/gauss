@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{#{% load my_templatetags %}#}
+
+{% block contenido %}
+    <style>
+    .fa-lock{
+        color:red;
+    }
+    </style>
+    <h4 class="app_title">Gestión de los proyectos existentes</h4>
+    <form method="post" name="gprojectsform" id="gprojectsform">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action" value="">
+        <input type="hidden" name="gproject_selected" id="gproject_selected" value="">
+        <div class="row">
+            <div class="columns large-12">
+                <ul class="accordion" data-accordion data-allow-all-closed="true">
+                    {% for gproject in gprojects %}
+                        <li class="accordion-item" data-accordion-item id="accordion{{ gproject.id }}">
+                            <a href="#" class="accordion-title accordion_head"
+                               data-id="{{ gproject.id }}"><i id="lock_{{ gproject.id }}"
+                                   class="fa {% if gproject.active %}fa-unlock{% else %}fa-lock{% endif %}"></i>
+                                &nbsp;&nbsp;&nbsp;<span id="gproject_name{{ gproject.id }}">{{ gproject.name }}</span>
+                            </a>
+                            <div class="accordion-content" data-tab-content id="accordion_content{{ gproject.id }}">
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </form>
+{% endblock %}
+
+
+
+
+{% block final %}
+    <script>
+        gp_buttons({plus: 'show'});
+
+        $('.accordion_head').on('click', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gprojects_ajax/", {action: 'project_data', 'id': id}, function (data) {
+                $('#accordion_content' + id).html(data);
+            });
+        });
+
+        $('.plus_button').on('click', function (e) {
+            e.preventDefault();
+            $('#action').val('create_project');
+            $('#gprojectsform').submit();
+        });
+
+        $('body').on('change', '.switch-input', function (e) {
+            var id = $(this).data('id');
+            $.post("/gprojects_ajax/", {action: 'change_active', 'id': id}, function (data) {
+                $('#lock_' + id).removeClass(data['remove']).addClass(data['add']);
+                $('#accordion_content' + id).html(data['html']);
+            }, 'json');
+        });
+
+        $('.accordion').on('click', '.remove_gproject', function (e) {
+            var id = $(this).data('id');
+            $.post("/gprojects_ajax/", {action: 'remove', 'id': id}, function (data) {
+                $('#accordion' + id).hide();
+            });
+        });
+
+    </script>
+{% endblock %}

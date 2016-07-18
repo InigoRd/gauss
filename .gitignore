@@ -1,0 +1,12 @@
+*.pyc
+*.txt
+*.zip
+*.dxf
+*.log
+gauss/settings.py
+*.pyc~
+*.txt~
+*.zip~
+*.dxf~
+*.log~
+

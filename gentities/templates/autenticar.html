@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>GAUSS - Identificación</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.png">
+    <link rel="stylesheet" href="/static/foundation-6/css/foundation.css"/>
+    <link rel="stylesheet" href="/static/font-awesome-4.5.0/css/font-awesome.min.css"/>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="robots" content="all"/>
+</head>
+<style>
+    .glogin {
+        font-size: 12pt;
+        font-weight: 700;
+        color: #31859c;
+    }
+</style>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" id="action" value="access">
+
+    <div class="row">&nbsp;</div>
+    <div class="callout secondary">
+        <div class="row">
+            <div class="large-6 small-6 medium-6 columns end text-right">
+                <img src="/static/images/logo_gauss_project_acceso.png" height="76" width="273">
+            </div>
+        </div>
+        <div id="introduce_user_pass">
+            <div class="row">
+                <div class="large-3 medium-2 small-1 columns">&nbsp;</div>
+                <div class="large-3 medium-4 small-5 columns text-right">
+                    <label class="right inline">
+                        <span class="glogin">Usuario</span>
+                    </label>
+                </div>
+                <div class="large-3 medium-4 small-5 columns">
+                    <input name="usuario" type="text" size="15" maxlength="50" value="">
+                </div>
+                <div class="large-3 medium-2 small-1 columns">&nbsp;</div>
+            </div>
+            <div class="row">
+                <div class="large-3 medium-2 small-1 columns">&nbsp;</div>
+                <div class="large-3 medium-4 small-5 columns text-right">
+                    <label for="right-label" class="right inline">
+                        <span class="glogin">Contraseña</span>
+                    </label>
+                </div>
+                <div class="large-3 medium-4 small-5 columns">
+                    <input name="passusuario" type="password" size="15" maxlength="50" value="">
+                </div>
+                <div class="large-3 medium-2 small-1 columns">&nbsp;</div>
+            </div>
+            <div class="row">
+                <div class="large-3 medium-2 small-1 columns">&nbsp;</div>
+                <div class="large-3 medium-4 small-5 columns text-right">&nbsp;</div>
+                <div class="large-3 medium-4 small-5 columns text-right">
+                    <input class="button" value="Entrar" name="entrar" onclick="" type="submit">
+                </div>
+                <div class="large-3 medium-2 small-1 columns">&nbsp;</div>
+            </div>
+            <div class="row">
+                <div class=" text-center">
+                    <a href="{% url 'recover_password' %}"> Haz click aquí si has olvidado tu contraseña</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="/static/foundation-6/js/vendor/jquery.min.js"></script>
+{#<script src="/static/foundation-6/js/foundation.min.js"></script>#}
+{#<script src="/static/js/js.cookie.js"></script>#}
+</html>

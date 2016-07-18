@@ -1,0 +1,31 @@
+{#{% load gproject_extras %}#}
+
+<div class="columns small-{{ gbaseline.left_side }} left-pane">
+    <div class="row" id="left-header" style="margin-left: 0px;">
+        <div class="row" id="column_headers" style="margin-left:0;">
+            <div class="gantt_list_column" style="width: 20px;border: none;text-align: center;">
+                <i class="fa fa-check-square-o"></i>
+            </div></div>
+        <div class="row" style="margin-left: 0px;">&nbsp;</div>
+    </div>
+
+    <div class="row" id="task_list" style="margin-left: 0px;position:relative;white-space: nowrap;">
+        <div id="task_list-1"></div>
+    </div>
+
+    <div class="row">
+        <div class="columns small-12">
+            <a class="button" id="add_gtask" data-id="{{ gbaseline.id }}"><i class="fa fa-plus"></i> Task</a>
+        </div>
+    </div>
+</div>
+<div class="columns small-{{ gbaseline.right_side }} right-pane">
+    <div class="row" id="right-header" style="margin-left: 0px;">
+        <div class="row" id="tl_months" style="margin-left: 0px;"></div>
+        <div class="row" id="tl_days" style="margin-left: 0px;"></div>
+    </div>
+
+    <div class="row" id="task_bars" style="margin-left: 0px;position:relative;white-space: nowrap;">
+        <div id="task_bars-1"></div>
+    </div>
+</div>

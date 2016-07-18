@@ -1,0 +1,32 @@
+<div class="row">
+    <div class="columns large-10">
+        Proyecto cerrado con fecha de comienzo: {{ gproject.start_date|date:'d-m-Y' }}
+    </div>
+    <div class="columns large-2">
+    <label>En ejecución:</label>
+        <div class="switch active_switch" data-id="{{ gproject.id }}">
+            <input class="switch-input" id="active{{ gproject.id }}" type="checkbox" data-id="{{ gproject.id }}"
+                   {% if gproject.active %}checked{% endif %}>
+            <label class="switch-paddle" for="active{{ gproject.id }}">
+                <span class="show-for-sr">Proyecto en proceso de ejecución</span>
+                <span class="switch-active" aria-hidden="true">Sí</span>
+                <span class="switch-inactive" aria-hidden="true">No</span>
+            </label>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="columns large-12">
+        <p>El administrador de este proyecto (project manager)
+            fue {{ gproject.administrator.first_name }} {{ gproject.administrator.last_name }}.</p>
+        <p>La descripción y notas tomadas fueron:</p>
+        <p>{{ gproject.notes }}</p>
+    </div>
+</div>
+
+
+<script>
+    $('.active_switch').foundation();
+
+
+</script>
