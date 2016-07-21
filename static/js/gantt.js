@@ -648,11 +648,62 @@ GAUSSPROJECT.draw_gtask = function (gtask) {
 };
 
 
-GAUSSPROJECT.create_gbaseline = function (){
-    return 0;
+GAUSSPROJECT.create_gbaseline = function () {
+    var current_gbaseline = GAUSSPROJECT.gproject.active_gbaseline;
+    $.post("/gantt_ajax/", {action: 'create_gbaseline', id: current_gbaseline.pk},
+        function (resp) {
+            current_gbaseline.fields.active = false;
+            $('.fa-check-circle-o').addClass('fa-circle-o').removeClass('fa-check-circle-o');
+            var new_gbaseline = JSON.parse(resp['gbaseline']);
+            var new_gtasks = JSON.parse(resp['gtasks']);
+            var new_glinks = JSON.parse(resp['glinks']);
+            var new_gcolumns = JSON.parse(resp['gcols']);
+            GAUSSPROJECT.parse_gbaselines(new_gbaseline);
+            GAUSSPROJECT.gbaselines.push(new_gbaseline[0]);
+            GAUSSPROJECT.parse_gtasks(new_gtasks);
+            GAUSSPROJECT.gtasks = new_gtasks;
+            GAUSSPROJECT.gcolumns = new_gcolumns;
+            GAUSSPROJECT.glinks = new_glinks;
+            $('.gantt_task_link').remove();
+            $('.gtask_row').remove();
+            var gtasks_length = new_gtasks.length;
+            for (var i = 0; i < gtasks_length; i++) {
+                GAUSSPROJECT.draw_gtask(new_gtasks[i]);
+            }
+            GAUSSPROJECT.draw_glinks(GAUSSPROJECT.glinks);
+            $('#reveal_creating_baseline').foundation('close');
+        }, 'json');
 };
+
+GAUSSPROJECT.edit_gbaseline = function (id) {
+    var gbaseline = queryget(GAUSSPROJECT.gbaselines, parseInt(id));
+    $('#gbaseline_name').val(gbaseline.fields.name);
+    $('#gbaseline_start_date').val(gbaseline.fields.start_date);
+    $('#gbaseline_scale').val(gbaseline.fields.scale);
+    if (gbaseline.fields.active == true){
+        $('#switch_active_gbaseline').attr('checked', true);
+    }
+    $('#reveal_edit_baseline').foundation('open');
+    $('.active_switch').foundation(); //in order to get the switch on if checked is true
+};
+
+GAUSSPROJECT.save_gbaseline_changes = function (id){
+    var gbaseline = queryget(GAUSSPROJECT.gbaselines, parseInt(id));
+};
+
 GAUSSPROJECT.parse_gbaselines = function (gbaselines) {
     $.each(gbaselines, function () {
+        var fa = this.fields.active ? "fa fa-check-circle-o" : "fa fa-circle-o";
+        var $li = $("<li/>")
+            .css('padding-right', '10px')
+            .css('z-index', 1000)
+            .attr('title', 'Baseline created on ' + this.fields.created)
+            .appendTo($('#menu_code-fork'));
+        var $a = $("<a/>")
+            .attr('data-id', this.pk)
+            .attr('class', 'select_gbaseline')
+            .html("<i class='" + fa + "'></i> " + this.fields.name)
+            .appendTo($li);
         Object.defineProperties(this, {
             "config": {
                 get: function () {
@@ -713,9 +764,7 @@ GAUSSPROJECT.parse_gbaselines = function (gbaselines) {
             $.each(GAUSSPROJECT.gcolumns, function (index, col) {
                 var $header = $("<div/>")
                     .attr("class", "gantt_list_column gantt_header_column col" + col.pk)
-                    //.attr("data-col", col.fields.pos)
                     .attr("data-colpk", col.pk)
-                    //.attr("data-content", col.fields.content)
                     .attr("id", "col" + col.pk)
                     .css("width", col.fields.width)
                     .css("text-align", col.fields.align)

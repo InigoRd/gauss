@@ -7,6 +7,7 @@ import unicodedata
 import csv
 from datetime import date, datetime, timedelta
 import simplejson as json
+import locale
 
 from django.shortcuts import render_to_response
 from django.core import serializers
@@ -23,6 +24,7 @@ from django.utils.encoding import smart_unicode
 from gentities.models import Guser, Glink
 from models import *
 
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 class GprojectForm(ModelForm):
     class Meta:
@@ -45,7 +47,8 @@ def gprojects(request):
     gresources = Gresource.objects.filter(guser=request.user)
     gprojects = Gproject.objects.filter(Q(removed=False),
                                         Q(gresources__in=gresources) | Q(administrator=request.user) | Q(
-                                            gusers_edit__in=[request.user])).distinct().order_by('-active', 'start_date')
+                                            gusers_edit__in=[request.user])).distinct().order_by('-active',
+                                                                                                 'start_date')
 
     return render_to_response("gprojects.html",
                               {
@@ -138,7 +141,6 @@ def gantt(request, gproject_id):
                 Gbaseline.objects.create(gproject=gproject, name='First baseline', start_date=start_datetime)
                 return redirect('/gprojects/?id=' + str(gproject.id), permanent=True)
 
-
     return render_to_response("gantt.html",
                               {
                                   # 'actions':
@@ -159,7 +161,8 @@ def gantt(request, gproject_id):
                                        {'name': 'trash', 'text': 'Borrar tareas', 'permission': 'create_projects',
                                         'title': 'Borrar las tareas seleccionadas', 'type': 'sliders'},
                                        {'name': 'indent', 'text': 'Hacer subtareas', 'permission': 'create_projects',
-                                        'title': 'Convertir en subtareas de la inmediatamente superior', 'type': 'sliders'},
+                                        'title': 'Convertir en subtareas de la inmediatamente superior',
+                                        'type': 'sliders'},
                                        {'name': 'dedent', 'text': 'Deshacer subtareas', 'permission': 'create_projects',
                                         'title': 'Anular su catalogación como subtareas', 'type': 'sliders'},
                                        {'name': 'arrow-down', 'text': 'Mover abajo', 'permission': 'create_projects',
@@ -170,7 +173,8 @@ def gantt(request, gproject_id):
                                         'title': 'Editar propiedades de la tarea', 'type': 'sliders'},
                                        {'name': 'code-fork', 'text': 'Baselines', 'permission': 'create_projects',
                                         'title': 'Operaciones con las baselines del proyecto', 'type': 'menu'},
-                                       {'name': 'plus-circle', 'text': 'Nueva baseline', 'permission': 'create_projects',
+                                       {'name': 'plus-circle', 'text': 'Nueva baseline',
+                                        'permission': 'create_projects',
                                         'title': 'Crear una nueva baseline a partir de la actual', 'type': 'code-fork'},
                                        {'name': 'random', 'text': 'Ocultar/Mostrar', 'permission': 'create_projects',
                                         'title': 'Mostrar/Ocultar enlaces entre tareas', 'type': 'button'},
@@ -326,7 +330,7 @@ def gantt_ajax(request):
             if (gproject.administrator == guser or gproject.can_guser_edit(guser)):
                 current_column_pos = col_orig.pos
                 try:
-                    col_dest = Gcolumn.objects.get(gbaseline=col_orig.gbaseline, pos=current_column_pos+1)
+                    col_dest = Gcolumn.objects.get(gbaseline=col_orig.gbaseline, pos=current_column_pos + 1)
                     col_orig.pos = col_dest.pos
                     col_orig.save()
                     col_dest.pos = current_column_pos
@@ -340,7 +344,7 @@ def gantt_ajax(request):
             if (gproject.administrator == guser or gproject.can_guser_edit(guser)):
                 current_column_pos = col_orig.pos
                 try:
-                    col_dest = Gcolumn.objects.get(gbaseline=col_orig.gbaseline, pos=current_column_pos-1)
+                    col_dest = Gcolumn.objects.get(gbaseline=col_orig.gbaseline, pos=current_column_pos - 1)
                     col_orig.pos = col_dest.pos
                     col_orig.save()
                     col_dest.pos = current_column_pos
@@ -381,25 +385,25 @@ def gantt_ajax(request):
             gtask.likely_time = val
             gtask.pessimistic_time = val
             gtask.save()
-            return JsonResponse('%s'%(val), safe=False)
+            return JsonResponse('%s' % (val), safe=False)
         elif action == 'update_optimistic_time':
             gtask = Gtask.objects.get(id=request.POST['id'])
             val = timedelta(days=float(request.POST['value']))
             gtask.optimistic_time = val
             gtask.save()
-            return JsonResponse('%s'%(val), safe=False)
+            return JsonResponse('%s' % (val), safe=False)
         elif action == 'update_likely_time':
             gtask = Gtask.objects.get(id=request.POST['id'])
             val = timedelta(days=float(request.POST['value']))
             gtask.likely_time = val
             gtask.save()
-            return JsonResponse('%s'%(val), safe=False)
+            return JsonResponse('%s' % (val), safe=False)
         elif action == 'update_pessimistic_time':
             gtask = Gtask.objects.get(id=request.POST['id'])
             val = timedelta(days=float(request.POST['value']))
             gtask.pessimistic_time = val
             gtask.save()
-            return JsonResponse('%s'%(val), safe=False)
+            return JsonResponse('%s' % (val), safe=False)
         # elif action == 'change_cell':
         #     gtask = Gtask.objects.get(id=request.POST['gtask_id'])
         #     content = request.POST['content']
@@ -453,7 +457,8 @@ def gantt_ajax(request):
                 {'estimate': gtask.estimate_time.days + round(float(gtask.estimate_time.seconds) / 3600 / 24, 2),
                  'optimistic': gtask.optimistic_time.days + round(float(gtask.optimistic_time.seconds) / 3600 / 24, 2),
                  'likely': gtask.likely_time.days + round(float(gtask.likely_time.seconds) / 3600 / 24, 2),
-                 'pessimistic': gtask.pessimistic_time.days + round(float(gtask.pessimistic_time.seconds) / 3600 / 24, 2)})
+                 'pessimistic': gtask.pessimistic_time.days + round(float(gtask.pessimistic_time.seconds) / 3600 / 24,
+                                                                    2)})
         elif action == 'update_predecessors':
             gtask = Gtask.objects.get(id=request.POST['gtask_id'])
             gproject = gtask.gbaseline.gproject
@@ -494,11 +499,37 @@ def gantt_ajax(request):
                 return HttpResponse(True)
             except:
                 return HttpResponse(False)
-            # # p = glink.predecessor
-            # s = glink.successor
-            # glink.delete()
-            # gantt_tasks, gantt_links = gproject_dict(gbaseline, gtask=s)
-            # return JsonResponse({'tasks': gantt_tasks, 'links': gantt_links}, safe=False)
+        elif action == 'create_gbaseline':
+            gbaseline = Gbaseline.objects.get(id=request.POST['id'])
+            gproject = gbaseline.gproject
+            if (gproject.administrator == guser or gproject.can_guser_edit(guser)):
+                gtasks = Gtask.objects.filter(gbaseline=gbaseline)
+                glinks = Gtask_link.objects.filter(gbaseline=gbaseline)
+                gcols = Gcolumn.objects.filter(gbaseline=gbaseline)
+                gbaseline.pk = None
+                gbaseline.name = datetime.now().strftime('%d/%m/%Y %H:%M')
+                gbaseline.save()
+                for gtask in gtasks:
+                    gtask.pk = None
+                    gtask.gbaseline = gbaseline
+                    gtask.save()
+                for glink in glinks:
+                    orig = Gtask.objects.get(gbaseline=gbaseline, pos=glink.predecessor.pos)
+                    dest = Gtask.objects.get(gbaseline=gbaseline, pos=glink.successor.pos)
+                    glink.pk = None
+                    glink.predecessor = orig
+                    glink.successor = dest
+                    glink.gbaseline = gbaseline
+                    glink.save()
+                for gcol in gcols:
+                    gcol.pk = None
+                    gcol.gbaseline = gbaseline
+                    gcol.save()
+                return JsonResponse({'gtasks': serializers.serialize('json', gbaseline.gtask_set.all().order_by('pos')),
+                                     'glinks': serializers.serialize('json', gbaseline.gtask_link_set.all()),
+                                     'gcols': serializers.serialize('json', gbaseline.gcolumn_set.all()),
+                                     'gbaseline': serializers.serialize('json', [gbaseline])}, safe=False)
+            return HttpResponse(False)
         elif action == 'create_gtask':
             gtask = Gtask.objects.create(id=request.POST['id'])
             gproject_id = gtask.gbaseline.gproject.id
@@ -587,4 +618,3 @@ def gantt_ajax(request):
             gcol.width = request.POST['width']
             gcol.save()
             return HttpResponse(True)
-

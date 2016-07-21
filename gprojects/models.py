@@ -447,10 +447,10 @@ class Gtask(models.Model):
         return False if self.children.all().count() > 0 else True
 
     class Meta:
-        ordering = ['pos']
+        ordering = ['-gbaseline', 'pos']
 
     def __unicode__(self):
-        return u'%s %s (%s)' % (self.pos, self.name, self.gbaseline)
+        return u'%s %s (%s-%s)' % (self.pos, self.name, self.gbaseline.pk, self.gbaseline.name)
 
 
 class Gtask_link(models.Model):
@@ -515,8 +515,14 @@ class Gtask_link(models.Model):
 
         return paths
 
+    class Meta:
+        ordering = ['-gbaseline']
     def __unicode__(self):
-        return u'%s -> %s (%s)' % (self.predecessor, self.successor, self.dependency)
+        if self.gbaseline.pk == self.predecessor.gbaseline.pk & self.gbaseline.pk == self.successor.gbaseline.pk:
+            pk = self.gbaseline.pk
+        else:
+            pk = u'Error. Links entre diferentes baselines'
+        return u'Gb: %s, %s -> %s (%s)' % (pk, self.predecessor.name, self.successor.name, self.dependency)
 
 
 class Gcolumn(models.Model):
@@ -534,7 +540,7 @@ class Gcolumn(models.Model):
     align = models.CharField('Text align', choices=ALIGN, max_length=30, default='center')
 
     class Meta:
-        ordering = ['gbaseline', 'pos']
+        ordering = ['-gbaseline', 'pos']
 
     def __unicode__(self):
-        return u'%s -> %s (%s)' % (self.gbaseline, self.pos, self.content)
+        return u'Gb: %s, %s (%s)' % (self.gbaseline.pk, self.pos, self.content)

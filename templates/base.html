@@ -200,7 +200,7 @@
                                 <li style="padding-right: 10px;" title="{{ action.title }}">
                                     <a class="button hide primary {{ action.name }}_button" href=""><i
                                             class="fa fa-{{ action.name }}"></i> {{ action.text }}</a>
-                                    <ul class="menu vertical" style="z-index:1000;">
+                                    <ul class="menu vertical" style="z-index:1000;" id="menu_{{ action.name }}">
                                         {% for subaction in actions %}
                                             {% if subaction.type == action.name %}
                                                 <li style="padding-right: 10px;z-index: 1000;"
