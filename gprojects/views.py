@@ -529,6 +529,28 @@ def gantt_ajax(request):
                                      'glinks': serializers.serialize('json', gbaseline.gtask_link_set.all()),
                                      'gcols': serializers.serialize('json', gbaseline.gcolumn_set.all()),
                                      'gbaseline': serializers.serialize('json', [gbaseline])}, safe=False)
+            else:
+                return HttpResponse(False)
+        elif action == 'load_gbaseline':
+            gbaseline = Gbaseline.objects.get(id=request.POST['id'])
+            gproject = gbaseline.gproject
+            if (gproject.administrator == guser or gproject.can_guser_edit(guser)):
+                return JsonResponse({'gtasks': serializers.serialize('json', gbaseline.gtask_set.all().order_by('pos')),
+                                     'glinks': serializers.serialize('json', gbaseline.gtask_link_set.all()),
+                                     'gcols': serializers.serialize('json', gbaseline.gcolumn_set.all()),
+                                     'gbaseline': serializers.serialize('json', [gbaseline])}, safe=False)
+            else:
+                return HttpResponse(False)
+        elif action == 'save_gbaseline_changes':
+            gbaseline = Gbaseline.objects.get(id=request.POST['id'])
+            gproject = gbaseline.gproject
+            if (gproject.administrator == guser or gproject.can_guser_edit(guser)):
+                gbaseline.start_date = datetime.strptime(request.POST['start_date'], '%d-%m-%Y %H:%M')
+                gbaseline.active = True if request.POST['active'] == 'true' else False
+                gbaseline.name = request.POST['name']
+                gbaseline.scale = request.POST['scale']
+                gbaseline.save()
+                return HttpResponse(True)
             return HttpResponse(False)
         elif action == 'create_gtask':
             gtask = Gtask.objects.create(id=request.POST['id'])

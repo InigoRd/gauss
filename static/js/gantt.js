@@ -32,7 +32,8 @@ GAUSSPROJECT.final_value = 0;
 GAUSSPROJECT.gtasks_to_be_updated = []; //List of gtasks that must be updated in an asynchronous way.
 GAUSSPROJECT.gtasks_to_be_updated_next_element = 0;
 
-GAUSSPROJECT.gtask_edited = null; //The gtask that is being edited in the gantt diagram
+GAUSSPROJECT.gtask_edited = null; //The gtask that is being edited in the Gantt diagram
+GAUSSPROJECT.gbaseline_edited = null; //The gbaseline is edited in the Gantt diagram
 
 GAUSSPROJECT.gcolumn_types = {
     estimate_time_days: 'Estimate time (d)',
@@ -80,6 +81,8 @@ GAUSSPROJECT.init_gantt = function () {
 
     GAUSSPROJECT.gproject.active_gbaseline.init_left_pane();
     GAUSSPROJECT.gproject.active_gbaseline.init_right_pane();
+
+    //The before lines only are drawing the headers of the panes. In order to draw columns and bars:
     var gtasks = GAUSSPROJECT.gproject.active_gbaseline.gtasks;
     var gtasks_length = gtasks.length;
     for (var i = 0; i < gtasks_length; i++) {
@@ -381,6 +384,7 @@ GAUSSPROJECT.edit_gtask = function (id) {
     $('#likely_time').val(html_column('likely_time', GAUSSPROJECT.gtask_edited));
     $('#pessimistic_time').val(html_column('pessimistic_time', GAUSSPROJECT.gtask_edited));
     $('#gtask_id').val(GAUSSPROJECT.gtask_edited.pk);
+    // Predecessors tab
     $('.option_predecessors').remove();
     var possible_predecessors = GAUSSPROJECT.gtask_edited.possible_predecessors;
     var p_p_length = possible_predecessors.length;
@@ -417,7 +421,6 @@ GAUSSPROJECT.change_predecessors = function (ps) {
     if (current_ps > old_ps) { // That means a predecessor has been added
         GAUSSPROJECT.create_glink(gtask_pk, id);
     } else { //Just in the case a predecessor has been removed
-        console.log('edited ', id, 'removed predecessor with id ', gtask_pk);
         for (var i = 0; i < GAUSSPROJECT.glinks.length; i++) {
             if (GAUSSPROJECT.glinks[i].fields.successor == id && GAUSSPROJECT.glinks[i].fields.predecessor == gtask_pk) {
                 GAUSSPROJECT.remove_glink(GAUSSPROJECT.glinks[i].pk);
@@ -442,36 +445,6 @@ GAUSSPROJECT.get_attrs = function (objs, attr) {
     }
     return attrs;
 };
-//GAUSSPROJECT.update_predecessors = function (list_pks){ //list_pks: list of predecessors pk
-//
-//    var gtask = GAUSSPROJECT.gtask_edited;
-//
-//    var old_predecessors = [];
-//    for (var i= 0; i< gtask.predecessors.length; i++){
-//        old_predecessors.push(gtask.predecessors[i].pk);
-//    }
-//    //http://www.2ality.com/2015/01/es6-set-operations.html
-//    var sop = new Set(old_predecessors);
-//    var snp = new Set(list_pks);
-//    var deleted = new Set([...sop].filter(x => !snp.has(x)));
-//    var added = new Set([...snp].filter(x => !sop.has(x)));
-//    // https://gist.github.com/jabney/d9d5c13ad7f871ddf03f
-//
-//    gtask = Gtask.objects.get(id=request.POST['gtask_id'])
-//            gproject = gtask.gbaseline.gproject
-//            if (gproject.administrator == guser or gproject.can_guser_edit(guser)):
-//                old_predecessors = Gtask_link.objects.filter(successor=gtask).values_list('predecessor__id', flat=True)
-//                new_predecessors = request.POST.getlist('predecessors')
-//                sop = set(old_predecessors)
-//                snp = set(new_predecessors)
-//                deleted = Gtask.objects.filter(id__in=list(sop - snp))
-//                for predecessor in deleted:
-//                    Gtask_link.objects.get(predecessor=predecessor, successor=gtask, gbaseline=gtask.gbaseline).delete()
-//                added = Gtask.objects.filter(id__in=list(snp - sop))
-//                for predecessor in added:
-//                    Gtask_link.objects.create(predecessor=predecessor, successor=gtask, gbaseline=gtask.gbaseline)
-//};
-
 
 GAUSSPROJECT.remove_gtasks = function (list_gtask_pks) {
     $('.gantt_task_link').remove();
@@ -675,20 +648,67 @@ GAUSSPROJECT.create_gbaseline = function () {
         }, 'json');
 };
 
+GAUSSPROJECT.load_gbaseline = function (id) {
+    $.post("/gantt_ajax/", {action: 'load_gbaseline', id: id},
+        function (resp) {
+            GAUSSPROJECT.gproject.active_gbaseline.fields.active = false;
+            var new_gbaseline = queryget(GAUSSPROJECT.gbaselines, id);
+            new_gbaseline.fields.active = true;
+            var html = '<i class="fa fa-check-circle-o"></i> ' + new_gbaseline.fields.name;
+            console.log(new_gbaseline);
+            $('.fa-check-circle-o').addClass('fa-circle-o').removeClass('fa-check-circle-o');
+            $('.select_gbaseline[data-id=' + id + ']').html(html);
+            var new_gtasks = JSON.parse(resp['gtasks']);
+            var new_glinks = JSON.parse(resp['glinks']);
+            var new_gcolumns = JSON.parse(resp['gcols']);
+            GAUSSPROJECT.parse_gtasks(new_gtasks);
+            GAUSSPROJECT.gtasks = new_gtasks;
+            GAUSSPROJECT.gcolumns = new_gcolumns;
+            GAUSSPROJECT.glinks = new_glinks;
+            GAUSSPROJECT.init_gantt();
+            $('#reveal_creating_baseline').foundation('close');
+        }, 'json');
+};
+
 GAUSSPROJECT.edit_gbaseline = function (id) {
-    var gbaseline = queryget(GAUSSPROJECT.gbaselines, parseInt(id));
-    $('#gbaseline_name').val(gbaseline.fields.name);
-    $('#gbaseline_start_date').val(gbaseline.fields.start_date);
-    $('#gbaseline_scale').val(gbaseline.fields.scale);
-    if (gbaseline.fields.active == true){
-        $('#switch_active_gbaseline').attr('checked', true);
+    GAUSSPROJECT.gbaseline_edited = queryget(GAUSSPROJECT.gbaselines, parseInt(id));
+    $('#gbaseline_name').val(GAUSSPROJECT.gbaseline_edited.fields.name);
+    $('#gbaseline_start_date').val(GAUSSPROJECT.gbaseline_edited.start_date.format('DD-MM-YYYY HH:mm'));
+    $('#gbaseline_scale').val(GAUSSPROJECT.gbaseline_edited.fields.scale);
+    if (GAUSSPROJECT.gbaseline_edited.fields.active == true) {
+        $('#switch_active_gbaseline').prop('checked', true);
+    } else {
+        $('#switch_active_gbaseline').prop('checked', false);
     }
     $('#reveal_edit_baseline').foundation('open');
     $('.active_switch').foundation(); //in order to get the switch on if checked is true
 };
 
-GAUSSPROJECT.save_gbaseline_changes = function (id){
-    var gbaseline = queryget(GAUSSPROJECT.gbaselines, parseInt(id));
+GAUSSPROJECT.save_gbaseline_changes = function () {
+    var moment_start_date = moment($('#gbaseline_start_date').val(), 'DD-MM-YYYY HH:mm');
+    if (moment_start_date.isValid()) {
+        var edited = GAUSSPROJECT.gbaseline_edited.fields;
+        var name = $('#gbaseline_name').val();
+        var scale = parseInt($('#gbaseline_scale').val());
+        var active = $('#switch_active_gbaseline').prop('checked');
+        var start_date = moment_start_date.format('DD-MM-YYYY HH:mm');
+        var cond_scale = edited.scale != scale;
+        var cond_start_date = moment(edited.start_date).format('DD-MM-YYYY HH:mm') != start_date;
+        var cond_active = edited.active != active;
+        edited.name = name;
+        edited.scale = scale;
+        edited.start_date = moment_start_date.format();
+
+        var id = GAUSSPROJECT.gbaseline_edited.pk;
+        GAUSSPROJECT.update_server_async({
+            action: 'save_gbaseline_changes', name: name, scale: scale, start_date: start_date, active: active, id: id
+        });
+        if (((cond_scale || cond_start_date) && active) || cond_active) {
+            GAUSSPROJECT.load_gbaseline(GAUSSPROJECT.gbaseline_edited.pk);
+        }
+    } else {
+        console.log('Date error. Start date has not a valid format.')
+    }
 };
 
 GAUSSPROJECT.parse_gbaselines = function (gbaselines) {
@@ -759,6 +779,8 @@ GAUSSPROJECT.parse_gbaselines = function (gbaselines) {
         };
         this.init_left_pane = function () {
             //var left = 20;
+            $('#column_headers').empty(); //remove the header columns
+            $('.col_side').remove(); //remove all Gantt columns (they have the .col_side class)
             $('<div class="gantt_list_column" style="width: 20px;border: none;text-align: center;"><i class="fa fa-check-square-o"></i></div>')
                 .appendTo($('#column_headers'));
             $.each(GAUSSPROJECT.gcolumns, function (index, col) {
@@ -777,6 +799,9 @@ GAUSSPROJECT.parse_gbaselines = function (gbaselines) {
 
         this.init_right_pane = function () {
             // The right panel has two parts: timeline and bars (tasks representation)
+            $('#tl_months').empty(); //remove the content of the months timeline
+            $('#tl_days').empty(); //remove the content of the days timeline
+            $('.bar_side').remove(); //remove all Gantt bars (they have the .bar_side class)
 
             // These lines are dedicated to draw the timeline
             var w = Math.max(800, this.duration('days') * this.scale + 100);
@@ -1131,6 +1156,7 @@ GAUSSPROJECT.create_glink = function (orig, dest, dependency) {
 };
 
 GAUSSPROJECT.draw_glinks = function (glinks) {
+    $('.gantt_task_link').remove();
     var margin_task = 2;
     var task_height = margin_task * 11;
     var line_width = 2;

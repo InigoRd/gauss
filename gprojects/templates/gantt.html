@@ -237,8 +237,7 @@
                     <div class="columns large-3">
                         <label>¿Activar?</label>
                         <div class="switch active_switch">
-                            <input class="switch-input" id="switch_active_gbaseline" type="checkbox"
-                                   {% if gproject.active %}checked{% endif %}>
+                            <input class="switch-input" id="switch_active_gbaseline" type="checkbox">
                             <label class="switch-paddle" for="switch_active_gbaseline">
                                 <span class="show-for-sr">Selección de si esta baseline es la actual o no</span>
                                 <span class="switch-active" aria-hidden="true">Sí</span>
@@ -267,10 +266,11 @@
                     <div class="columns large-12">
                         <ul>
                             <li>La fecha de inicio marca el comienzo de las actividades del proyecto</li>
-                            <li>La escala representa los pixels que se corresponden con una barra en el diagrama de
-                                Gantt
+                            <li>La escala representa los pixels que se corresponden a la anchura de un día
+                                 en el diagrama deGantt
                             </li>
-                            <li>Activar la baseline implica desactivar la actual y redibujar el diagrama</li>
+                            <li>De todas las posibles baselines de un proyecto, en pantalla solo se muestra la que
+                                esta activa. Activar una baseline implica desactivar el resto y redibujar el diagrama</li>
                         </ul>
                     </div>
                 </div>
@@ -355,6 +355,8 @@
     <script src="/static/js/moment-with-locales.min.js"></script>
     <script src="/static/js/setOps.js"></script>
     <script src="/static/js/gantt.js"></script>
+    <script src="/static/datepicker/js/foundation-datepicker.js"></script>
+    <link rel="stylesheet" href="/static/datepicker/css/foundation-datepicker.css"/>
     <script>
         CKEDITOR.disableAutoInline = true;
         moment.locale('es');
@@ -399,10 +401,24 @@
         });
         $('#acept_gbaseline_changes').click(function (e) {
             e.preventDefault();
-            GAUSSPROJECT.save_gbaseline_changes($(this).data('id'));
+            GAUSSPROJECT.save_gbaseline_changes(); {# it will save the changes on the GAUSSPROJECT.gbaseline_edited #}
             $('#reveal_edit_baseline').foundation('close');
         });
 
+{#        $("#gbaseline_start_date44").fdatetimepicker({#}
+{#            format: 'dd/mm/yyyy hh:ii',#}
+{#            autoclose: true,#}
+{#            todayBtn: true,#}
+{#            language: 'es',#}
+{#            pickerPosition: "bottom-left",#}
+{#            weekStart: 1});#}
+
+        $("#gbaseline_start_date").fdatepicker({
+		format: 'dd-mm-yyyy hh:ii',
+		disableDblClickSelection: true,
+		language: 'vi',
+		pickTime: true
+	});
         {# Operations around baselines are finished at this point #}
 
         $('.random_button').click(function (e) {
