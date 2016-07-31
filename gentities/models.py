@@ -38,7 +38,7 @@ PROVINCES = (('0', ''),)
 
 class Gentity(models.Model):
     name = models.CharField("Nombre", max_length=250, null=True, blank=True)
-    vat_number = models.CharField("NIF", max_length=20, null=True, blank=True)
+    vat_number = models.CharField("CIF", max_length=20, null=True, blank=True)
     # bank = models.ForeignKey(Bank, null=True, blank=True)
     iban = models.CharField("IBAN", max_length=40, null=True, blank=True)
     address = models.CharField("Dirección", max_length=375, null=True, blank=True)
@@ -175,3 +175,5 @@ class Glink(models.Model):
 
     def __unicode__(self):
         return u'%s -- %s (%s)' % (self.link, self.guser, self.deadline)
+
+

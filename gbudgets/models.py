@@ -12,7 +12,7 @@ from gentities.models import Gentity, Guser
 
 # Function to save files with a name that keeps consistency
 def update_file(instance, filename):
-    instance.fich_name = filename
+    instance.file_name = filename
     ext = filename.partition('.')[2]
     now = datetime.now()
     new_filename = 'budget_file_%s.%s' % (now.strftime('%Y%m%d%H%M%f'), ext)
@@ -23,6 +23,7 @@ class Budget_file(models.Model):
     file = models.FileField("File related to the budget", upload_to=update_file, blank=True)
     file_name = models.CharField('File name', max_length=200, blank=True, null=True)
     content_type = models.CharField("Type of file", max_length=200, blank=True, null=True)
+    description = models.CharField("Small description", max_length=300, blank=True, null=True)
 
     def __unicode__(self):
         return u'%s' % (self.file)
@@ -31,6 +32,11 @@ class Budget_file(models.Model):
 class Gbudget(models.Model):
     gentity = models.ForeignKey(Gentity, blank=True, null=True)
     title = models.CharField('Title for the budget', blank=True, null=True, max_length=150)
+    removed = models.BooleanField('The budget is removed?', default=False)
+    administrator = models.ForeignKey(Guser, blank=True, null=True)
+    gusers_edit = models.ManyToManyField(Guser, blank=True, related_name='can_edit_gbudget')
+    initial_bc3 = models.ForeignKey(Budget_file, blank=True, null=True, related_name='initial')
+    final_bc3 = models.ForeignKey(Budget_file, blank=True, null=True, related_name='final')
     created = models.DateTimeField('Created', auto_now_add=True)
     modified = models.DateTimeField('Last modification', auto_now=True)
 
@@ -48,7 +54,7 @@ class Vrecord(models.Model):
     TYPES = (
         (1, 'Base de datos'), (2, 'Presupuesto'), (3, 'Certificación (a origen)'),
         (4, u'Actualización de base de datos'))
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     owner = models.CharField('Data base editor', blank=True, null=True, max_length=150)
     version = models.CharField('Format file version', default='FIEBDC-3/2016', max_length=100)
     date = models.DateField('Date', blank=True, null=True)
@@ -65,13 +71,13 @@ class Vrecord(models.Model):
     url = models.URLField('Url where documents and images can be found', blank=True, null=True)
 
     class Meta:
-        ordering = ['budget']
+        ordering = ['gbudget']
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.budget, self.date)
+        return u'%s (%s)' % (self.gbudget, self.date)
 
 
-class Vrecord_id_label(models.Model):
+class Vrecord_label(models.Model):
     """
     ROTULO_IDENTIFICACION: Asigna secuencialmente títulos a los valores definidos en el campo PRECIO del registro ~C, y
     los conjuntos de campos de números de decimales del registro ~K, que tal como se indica en su ESPECIFICACION, puede
@@ -84,9 +90,10 @@ class Vrecord_id_label(models.Model):
     """
     vrecord = models.ForeignKey(Vrecord)
     title = models.CharField('Sequential title', max_length=200)
+    pos = models.IntegerField('Label position to be related to Krecord_scope and Crecord_price', default=0)
 
     class Meta:
-        ordering = ['vrecord']
+        ordering = ['vrecord', 'id']
 
     def __unicode__(self):
         return u'%s (%s)' % (self.vrecord, self.title)
@@ -100,12 +107,23 @@ class Krecord(models.Model):
     { DRC \ DC \ \ DFS \ DRS \ \ DUO \ DI \ DES \ DN \ DD \ DS \ DSP \ DEC \ DIVISA \ } | [ n ] |
     The first field only is there because compatibility. We will not read it.
     """
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     ci = models.FloatField('Percentage CI', default=0)
-    gg = models.FloatField('Percentage GG', default=0)
-    bi = models.FloatField('Percentage BI', default=0)
-    baja = models.FloatField('Percentage BAJA', default=0)
+    gg = models.FloatField('Percentage GG', default=13)
+    bi = models.FloatField('Percentage BI', default=6)
+    baja = models.FloatField('Percentage BAJA', default=1)
     iva = models.FloatField('Percentage IVA', default=21)
+
+    class Meta:
+        ordering = ['gbudget']
+
+    def __unicode__(self):
+        return u'%s (CI %s, GG %s, BI %s, BAJA %s, IVA %s)' % (
+        self.gbudget, self.ci, self.gg, self.bi, self.baja, self.iva)
+
+class Krecord_scope(models.Model):
+    krecord = models.ForeignKey(Krecord, related_name='additional')
+    pos = models.IntegerField('Krecord_scope position to be related to Vrecord_label and Crecord_price', default=0)
     # Number of decimal places of the ...
     drc = models.IntegerField('... efficiency (or measure) in a chapter or subchapter break down.', default=3)
     dc = models.IntegerField('... price of a chapter or subchapter.', default=2)
@@ -122,12 +140,11 @@ class Krecord(models.Model):
     divisa = models.CharField('... monetary unit.', default='Euro', max_length=10)
 
     class Meta:
-        ordering = ['budget']
+        ordering = ['krecord__gbudget']
 
     def __unicode__(self):
-        return u'%s (CI %s, GG %s, BI %s, BAJA %s, IVA %s, DRC %s, DC %s, DFS %s, ...)' % (
-        self.budget, self.ci, self.gg, self.bi, self.baja, self.iva, self.drc, self.dc, self.dfs)
-
+        return u'%s (DRC %s, DC %s, DFS %s, DRS %s, DUO %s, DI %s, DES %s, DN %s, ...)' % (
+        self.krecord, self.drc, self.dc, self.dfs, self.drs, self.duo, self.di, self.des, self.dn)
 
 #############################################################
 
@@ -137,25 +154,36 @@ class Crecord(models.Model):
     """
     TYPES = ((0, 'Sin clasificar'), (1, 'Mano de obra'), (2, 'Maquinaria y medios auxiliares'), (3, 'Materiales'),
              (4, 'Componentes adicionales de residuo'), (5, 'Clasificación de residuo'))
-    budget = models.ForeignKey(Gbudget)
+    HIERARCHY = ((0, 'Root'), (1, 'Chapter'), (2, 'Normal concept'))
+    gbudget = models.ForeignKey(Gbudget)
     code = models.CharField('Code of the described concept', max_length=22)
+    hierarchy = models.IntegerField('Hierarchy: root, chapter or concept', choices=HIERARCHY, default=2)
     unit = models.CharField('Unit of measurement', blank=True, null=True, max_length=7)
-    summary = models.CharField('Summary of the concept', blank=True, null=True, max_length=100)
-    type = models.IntegerField('Type of concept', choices=TYPES, blank=True, null=True)
+    summary = models.CharField('Summary of the concept', blank=True, null=True, max_length=300)
+    type = models.CharField('Type of concept', blank=True, null=True, max_length=10)
     # ~T | CODIGO_CONCEPTO |  TEXTO_DESCRIPTIVO  |
     texto = models.TextField('Concept description', blank=True, null=True)
 
+    def __unicode__(self):
+        return u'Budget: %s, %s - %s (%s ...)' % (self.gbudget.id, self.code, self.hierarchy, self.summary[:50])
 
-class Crecord_synonymous(models.Model):
+
+class Crecord_alias(models.Model):
     crecord = models.ForeignKey(Crecord)
-    code = models.CharField('Code of the described concept', max_length=22)
+    code = models.CharField('Alias code for crecord.code', max_length=22)
+
+    def __unicode__(self):
+        return u'Budget: %s, Alias: %s -> Real code: %s' % (self.crecord.gbudget.id, self.code, self.crecord.code)
 
 
-class Crecord_prices(models.Model):
-    id_label = models.ForeignKey(Vrecord_id_label)
+class Crecord_price(models.Model):
     crecord = models.ForeignKey(Crecord)
     price = models.FloatField('Price of the concept', blank=True, null=True)
     date = models.DateField('Date when the price was defined', blank=True, null=True)
+    pos = models.IntegerField('Crecord_price position to be related to Vrecord_label and Krecord_scope', default=0)
+
+    def __unicode__(self):
+        return u'Budget: %s, %s -> %s (%s)' % (self.crecord.gbudget.id, self.crecord.code, self.price, self.date)
 
 
 #############################################################
@@ -165,7 +193,7 @@ class Drecord(models.Model):
     ~D | CODIGO_PADRE | < CODIGO_HIJO \ [ FACTOR ] \ [ RENDIMIENTO ] \ > |
     < CODIGO_HIJO \ [ FACTOR ] \ [ RENDIMIENTO ] \ {CODIGO_PORCENTAJE ; } \ > |
     """
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     parent = models.ForeignKey(Crecord, related_name='parent_drecord')
     child = models.ForeignKey(Crecord, related_name='child_drecord')
     factor = models.FloatField('Eficiency factor', default=1.0)
@@ -189,7 +217,7 @@ class Rrecord(models.Model):
     """
     TYPES = ((0, 'Residuo de componente de colocación'), (1, 'Residuo de componente de demolición'),
              (2, 'Residuo de componente de excavación'), (3, 'Residuo de componente de embalaje'))
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     parent = models.ForeignKey(Crecord, related_name='parent_rrecord')
     child = models.ForeignKey(Crecord, related_name='child_rrecord', blank=True, null=True)
     type = models.IntegerField('Tipo de residuo', blank=True, null=True)
@@ -211,7 +239,7 @@ class Lrecord(models.Model):
     ~L | CODIGO_CONCEPTO | { CODIGO_SECCION_PLIEGO \ TEXTO_SECCION_PLIEGO \ } |
        { CODIGO_SECCION_PLIEGO \ ARCHIVO_TEXTO_RTF \ } | { CODIGO_SECCION_PLIEGO \ ARCHIVO_TEXTO_HTM \ } |
     """
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     section_code = models.CharField('Scope statement section code', blank=True, null=True, max_length=20)
     section_title = models.CharField('Scope statement section title', blank=True, null=True, max_length=100)
 
@@ -230,7 +258,7 @@ class Wrecord(models.Model):
     """
     ~W | < ABREV_AMBITO \ [ AMBITO ] \ > |
     """
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     abbrev = models.CharField('Abbreviation of the geographical scope', blank=True, null=True, max_length=10)
     scope = models.CharField('Complete name of the geographical scope', blank=True, null=True, max_length=50)
 
@@ -276,7 +304,7 @@ class Erecord(models.Model):
         [ CIF ] \ [ WEB ] \ [ EMAIL ] \ |
     """
     TYPES = (('C', 'Central'), ('D', 'Delegación'), ('R', 'Representante'))
-    budget = models.ForeignKey(Gbudget)
+    gbudget = models.ForeignKey(Gbudget)
     # CODIGO del SCc que define a la entidad (empresa, organismo, etc.):
     code = models.CharField('Company code', blank=True, null=True, max_length=50)
     summary = models.CharField('Nombre abreviado de la entidad', blank=True, null=True, max_length=20)

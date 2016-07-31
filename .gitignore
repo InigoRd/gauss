@@ -9,4 +9,10 @@ gauss/settings.py
 *.zip~
 *.dxf~
 *.log~
+migrations/*
+gbudgets/migrations/*
+gentities/migrations/*
+gprojects/migrations/*
+
+
 

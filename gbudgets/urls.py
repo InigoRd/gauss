@@ -13,14 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from django.contrib import admin
+from django.conf.urls import url
+from . import views
 
 urlpatterns = [
-    url(r'^', include('gentities.urls')),
-    url(r'^', include('gprojects.urls')),
-    url(r'^', include('gresources.urls')),
-    url(r'^', include('gbudgets.urls')),
-    url(r'^admin/', admin.site.urls),
-    url(r'^captcha/', include('captcha.urls')),
+    url(r'^gbudgets/', views.gbudgets, name='gbudgets'),
+    # url(r'^create_project/', views.create_project, name='create_project'),
+    # url(r'^gprojects_ajax/', views.gprojects_ajax, name='gprojects_ajax'),
+    # url(r'^gantt/(?P<gproject_id>[0-9]+)/$', views.gantt),
+    # url(r'^gantt_ajax/', views.gantt_ajax, name='gantt_ajax')
 ]

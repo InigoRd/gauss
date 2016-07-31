@@ -140,6 +140,7 @@ def index(request):
         return render_to_response("autenticar.html", {}, context_instance=RequestContext(request))
 
 
+
 # @LogGauss
 def enlazar(request):
     # #crear_aviso(request, True, 'enlazar')

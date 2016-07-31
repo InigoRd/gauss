@@ -24,7 +24,8 @@ from django.utils.encoding import smart_unicode
 from gentities.models import Guser, Glink
 from models import *
 
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+# locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
 
 class GprojectForm(ModelForm):
     class Meta:
@@ -44,9 +45,13 @@ def gprojects(request):
             # start_datetime = datetime.combine(gproject.start_date, datetime.min.time())
             # Gbaseline.objects.create(gproject=gproject, name='First baseline', start_date = start_datetime)
 
-    gresources = Gresource.objects.filter(guser=request.user)
+    # gresources = Gresource.objects.filter(guser=request.user)
+    # gprojects = Gproject.objects.filter(Q(removed=False),
+    #                                     Q(gresources__in=gresources) | Q(administrator=request.user) | Q(
+    #                                         gusers_edit__in=[request.user])).distinct().order_by('-active',
+    #                                                                                              'start_date')
     gprojects = Gproject.objects.filter(Q(removed=False),
-                                        Q(gresources__in=gresources) | Q(administrator=request.user) | Q(
+                                        Q(administrator=request.user) | Q(
                                             gusers_edit__in=[request.user])).distinct().order_by('-active',
                                                                                                  'start_date')
 

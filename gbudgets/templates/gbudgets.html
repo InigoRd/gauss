@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{#{% load my_templatetags %}#}
+
+{% block contenido %}
+    <style>
+    .fa-lock{
+        color:red;
+    }
+    </style>
+    <h4 class="app_title">Gestión de los presupuestos existentes</h4>
+    <form method="post" name="gbudgetsform" id="gbudgetsform" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action" value="">
+        <input type="hidden" name="gbudget_selected" id="gbudget_selected" value="">
+        <div class="row">
+            <div class="columns large-12">
+                <input type="file" name="bc3" id="bc3">
+            </div>
+        </div>
+        <div class="row">
+            <div class="columns large-12">
+                <ul class="accordion" data-accordion data-allow-all-closed="true">
+{#                    {% for gbudget in gbudgets %}#}
+{#                        <li class="accordion-item" data-accordion-item id="accordion{{ gbudget.id }}">#}
+{#                            <a href="#" class="accordion-title accordion_head"#}
+{#                               data-id="{{ gbudget.id }}"><i id="lock_{{ gbudget.id }}"#}
+{#                                   class="fa {% if gbudget.removed %}fa-unlock{% else %}fa-lock{% endif %}"></i>#}
+{#                                &nbsp;&nbsp;&nbsp;<span id="gbudget_name{{ gbudget.id }}">{{ gbudget.name }}</span>#}
+{#                            </a>#}
+{#                            <div class="accordion-content" data-tab-content id="accordion_content{{ gbudget.id }}">#}
+{#                            </div>#}
+{#                        </li>#}
+{#                    {% endfor %}#}
+                </ul>
+                {{ data }}
+            </div>
+        </div>
+
+    </form>
+{% endblock %}
+
+
+
+
+{% block final %}
+    <script>
+        gp_buttons({check: 'show'});
+
+        $('.accordion_head').on('click', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post("/gbudgets_ajax/", {action: 'budget_data', 'id': id}, function (data) {
+                $('#accordion_content' + id).html(data);
+            });
+        });
+
+        $('.check_button').on('click', function (e) {
+            e.preventDefault();
+            $('#action').val('load_bc3');
+            $('#gbudgetsform').submit();
+        });
+
+        $('body').on('change', '.switch-input', function (e) {
+            var id = $(this).data('id');
+            $.post("/gbudgets_ajax/", {action: 'change_active', 'id': id}, function (data) {
+                $('#lock_' + id).removeClass(data['remove']).addClass(data['add']);
+                $('#accordion_content' + id).html(data['html']);
+            }, 'json');
+        });
+
+        $('.accordion').on('click', '.remove_gbudget', function (e) {
+            var id = $(this).data('id');
+            $.post("/gbudgets_ajax/", {action: 'remove', 'id': id}, function (data) {
+                $('#accordion' + id).hide();
+            });
+        });
+
+    </script>
+{% endblock %}
