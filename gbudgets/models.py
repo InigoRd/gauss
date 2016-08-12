@@ -90,7 +90,6 @@ class Vrecord_label(models.Model):
     """
     vrecord = models.ForeignKey(Vrecord)
     title = models.CharField('Sequential title', max_length=200)
-    pos = models.IntegerField('Label position to be related to Krecord_scope and Crecord_price', default=0)
 
     class Meta:
         ordering = ['vrecord', 'id']
@@ -119,11 +118,12 @@ class Krecord(models.Model):
 
     def __unicode__(self):
         return u'%s (CI %s, GG %s, BI %s, BAJA %s, IVA %s)' % (
-        self.gbudget, self.ci, self.gg, self.bi, self.baja, self.iva)
+            self.gbudget, self.ci, self.gg, self.bi, self.baja, self.iva)
+
 
 class Krecord_scope(models.Model):
     krecord = models.ForeignKey(Krecord, related_name='additional')
-    pos = models.IntegerField('Krecord_scope position to be related to Vrecord_label and Crecord_price', default=0)
+    vrecord_label = models.ForeignKey(Vrecord_label, related_name='krecord_scope')
     # Number of decimal places of the ...
     drc = models.IntegerField('... efficiency (or measure) in a chapter or subchapter break down.', default=3)
     dc = models.IntegerField('... price of a chapter or subchapter.', default=2)
@@ -144,7 +144,8 @@ class Krecord_scope(models.Model):
 
     def __unicode__(self):
         return u'%s (DRC %s, DC %s, DFS %s, DRS %s, DUO %s, DI %s, DES %s, DN %s, ...)' % (
-        self.krecord, self.drc, self.dc, self.dfs, self.drs, self.duo, self.di, self.des, self.dn)
+            self.krecord, self.drc, self.dc, self.dfs, self.drs, self.duo, self.di, self.des, self.dn)
+
 
 #############################################################
 
@@ -162,10 +163,11 @@ class Crecord(models.Model):
     summary = models.CharField('Summary of the concept', blank=True, null=True, max_length=300)
     type = models.CharField('Type of concept', blank=True, null=True, max_length=10)
     # ~T | CODIGO_CONCEPTO |  TEXTO_DESCRIPTIVO  |
-    texto = models.TextField('Concept description', blank=True, null=True)
+    text = models.TextField('Concept description', blank=True, null=True)
 
     def __unicode__(self):
         return u'Budget: %s, %s - %s (%s ...)' % (self.gbudget.id, self.code, self.hierarchy, self.summary[:50])
+        # return '%s' % (self.gbudget.id)
 
 
 class Crecord_alias(models.Model):
@@ -178,9 +180,9 @@ class Crecord_alias(models.Model):
 
 class Crecord_price(models.Model):
     crecord = models.ForeignKey(Crecord)
+    vrecord_label = models.ForeignKey(Vrecord_label, related_name='crecord_price')
     price = models.FloatField('Price of the concept', blank=True, null=True)
     date = models.DateField('Date when the price was defined', blank=True, null=True)
-    pos = models.IntegerField('Crecord_price position to be related to Vrecord_label and Krecord_scope', default=0)
 
     def __unicode__(self):
         return u'Budget: %s, %s -> %s (%s)' % (self.crecord.gbudget.id, self.crecord.code, self.price, self.date)
@@ -199,6 +201,10 @@ class Drecord(models.Model):
     factor = models.FloatField('Eficiency factor', default=1.0)
     efficency = models.FloatField('Número de unidades, rendimiento o medición', default=1.0)
 
+    def __unicode__(self):
+        return u'Budget: %s, Parent: %s -> Child: %s (factor: %s, efficiency: %s)' % (
+            self.gbudget.id, self.parent.code, self.child.code, self.factor, self.efficency)
+
 
 class Drecord_percentage_code(models.Model):
     drecord = models.ForeignKey(Drecord)
@@ -207,6 +213,9 @@ class Drecord_percentage_code(models.Model):
     # ~D|PP009|UOT002\1.000\0.180\UOP009\1.000\0.052\UOT004\1.000\0.120\UOL003\1.000\2.000\||
     # ~D|AUX001|MQ001\1\0.0800\|MQ001\1\0.0800\\|
     # ~D|UOB001|MTB001\1\1.0000\AUX008\1\0.1000\MO011\1\0.5000\%MA\1\0.0200\%CI\1\0.0600\|MTB001\1\1.0000\%MA;%CI;\AUX008\1\0.1000\%MA;%CI;\MO011\1\0.5000\%MA;%CI;\%MA\1\0.0200\%CI;\%CI\1\0.0600\\|
+    def __unicode__(self):
+        return u'Budget: %s, Parent: %s -> Child: %s (percentage: %s)' % (
+            self.drecord.gbudget.id, self.drecord.parent.code, self.drecord.child.code, self.percentage_code)
 
 
 #############################################################
@@ -222,6 +231,11 @@ class Rrecord(models.Model):
     child = models.ForeignKey(Crecord, related_name='child_rrecord', blank=True, null=True)
     type = models.IntegerField('Tipo de residuo', blank=True, null=True)
 
+    def __unicode__(self):
+        c = self.child.code if self.child else 'No defined'
+        t = self.type if self.type else 'No defined'
+        return u'Budget: %s, Parent: %s -> Child: %s (type: %s)' % (self.gbudget.id, self.parent.code, c, t)
+
 
 class Rrecord_property(models.Model):
     PROPERTIES = (('r', 'Rendimiento'), ('rp', 'Porcentaje total de residuo de colocación'))
@@ -229,6 +243,25 @@ class Rrecord_property(models.Model):
     property = models.CharField('Característica del residuo', choices=PROPERTIES, max_length=4, default='r')
     value = models.CharField('Valor de la propiedad', blank=True, null=True, max_length=20)
     unit = models.CharField('Measurement unit', blank=True, null=True, max_length=20)
+
+    def __unicode__(self):
+        return u'Budget: %s, Parent: %s -> Child: %s (type: %s) / Property: %s, Value: %s, Units: %s' % (
+            self.rrecord.gbudget.id, self.rrecord.parent.code, self.rrecord.child.code, self.rrecord.type,
+            self.property, self.value, self.unit)
+
+
+#############################################################
+
+class Wrecord(models.Model):
+    """
+    ~W | < ABREV_AMBITO \ [ AMBITO ] \ > |
+    """
+    gbudget = models.ForeignKey(Gbudget)
+    abbrev = models.CharField('Abbreviation of the geographical scope', blank=True, null=True, max_length=10)
+    scope = models.CharField('Complete name of the geographical scope', blank=True, null=True, max_length=100)
+
+    def __unicode__(self):
+        return u'Budget: %s, Abbrev: %s -> Scope: %s' % (self.gbudget.id, self.abbrev, self.scope)
 
 
 #############################################################
@@ -243,6 +276,9 @@ class Lrecord(models.Model):
     section_code = models.CharField('Scope statement section code', blank=True, null=True, max_length=20)
     section_title = models.CharField('Scope statement section title', blank=True, null=True, max_length=100)
 
+    def __unicode__(self):
+        return u'Budget: %s, Code: %s -> Title: %s' % (self.gbudget.id, self.section_code, self.section_title)
+
 
 class Lrecord_section(models.Model):
     lrecord = models.ForeignKey(Lrecord, related_name='lrecord')
@@ -251,16 +287,8 @@ class Lrecord_section(models.Model):
     rtf_file = models.ForeignKey(Budget_file, related_name="lrecord_rtf_file", blank=True)
     htm_file = models.ForeignKey(Budget_file, related_name="lrecord_htm_file", blank=True)
 
-
-#############################################################
-
-class Wrecord(models.Model):
-    """
-    ~W | < ABREV_AMBITO \ [ AMBITO ] \ > |
-    """
-    gbudget = models.ForeignKey(Gbudget)
-    abbrev = models.CharField('Abbreviation of the geographical scope', blank=True, null=True, max_length=10)
-    scope = models.CharField('Complete name of the geographical scope', blank=True, null=True, max_length=50)
+    def __unicode__(self):
+        return u'%s, Concept: %s (%s ...)' % (self.lrecord, self.crecord.code, self.text[:30])
 
 
 #############################################################
@@ -269,7 +297,7 @@ class Qrecord(models.Model):
     ~Q | < CODIGO_CONCEPTO \ > | { CODIGO_SECCION_PLIEGO \ CODIGO_PARRAFO \ { ABREV_AMBITO ; } \ } |
     """
     crecord = models.ForeignKey(Crecord, related_name='qcrecord')
-    section_code = models.CharField('Scope statement section code', blank=True, null=True, max_length=20)
+    lrecord = models.ForeignKey(Lrecord, related_name='lqrecord', blank=True, null=True)
     paragraph_code = models.CharField('Scope statement paragraph code', blank=True, null=True, max_length=20)
     abbrev = models.ManyToManyField(Wrecord, blank=True)
 
@@ -316,12 +344,9 @@ class Erecord(models.Model):
     location = models.CharField('Localidad', blank=True, null=True, max_length=100)
     province = models.CharField('Provincia', blank=True, null=True, max_length=100)
     country = models.CharField('País', blank=True, null=True, max_length=100)
-    tel1 = models.CharField('Tel1', blank=True, null=True, max_length=15)
-    tel2 = models.CharField('Tel2', blank=True, null=True, max_length=15)
-    fax1 = models.CharField('Fax1', blank=True, null=True, max_length=15)
-    fax2 = models.CharField('Fax2', blank=True, null=True, max_length=15)
-    con1 = models.CharField('Contacto1', blank=True, null=True, max_length=50)
-    con2 = models.CharField('Contacto2', blank=True, null=True, max_length=50)
+    tel = models.CharField('Tel', blank=True, null=True, max_length=15)
+    fax = models.CharField('Fax', blank=True, null=True, max_length=15)
+    contact = models.CharField('Contact', blank=True, null=True, max_length=50)
     cif = models.CharField('CIF', blank=True, null=True, max_length=15)
     web = models.CharField('Web', blank=True, null=True, max_length=50)
     email = models.CharField('E-mail', blank=True, null=True, max_length=50)
@@ -338,44 +363,83 @@ class Erecord(models.Model):
 
 
 #############################################################
+class Xrecord_ti(models.Model):
+    """
+    X record Technical Information
+    ~X | | < CODIGO_IT \ DESCRIPCION_IT \ UM \ > |
+    ~X | CODIGO_CONCEPTO | < CODIGO_IT \ VALOR_IT \ > |
+    """
+    # TYPES = (('ce', 'Coste energético (MJ)'), ('eCO2', 'Emisión de CO2 (kg)'), ('m', 'Masa del elemento (kg)'),
+    #          ('ler', 'Código ler de la lista europea de residuos'), ('v', 'Volumen (m3)'))
+    gbudget = models.ForeignKey(Gbudget)
+    ti_code = models.CharField('Code of the technical information', max_length=36)
+    description = models.TextField('Code of the technical information', blank=True, null=True)
+    unit = models.CharField('Unit of measure', blank=True, null=True, max_length=20)
+
+    def __unicode__(self):
+        return u'Budget: %s, TI code: %s (%s)' % (self.gbudget.id, self.ti_code, self.unit)
+
+
 class Xrecord(models.Model):
     """
     ~X | | < CODIGO_IT \ DESCRIPCION_IT \ UM \ > |
     ~X | CODIGO_CONCEPTO | < CODIGO_IT \ VALOR_IT \ > |
     """
-    TYPES = (('ce', 'Coste energético (MJ)'), ('eCO2', 'Emisión de CO2 (kg)'), ('m', 'Masa del elemento (kg)'),
-             ('ler', 'Código ler de la lista europea de residuos'), ('v', 'Volumen (m3)'))
-    crecord = models.ForeignKey(Crecord, blank=True, null=True)
-    it_code = models.CharField('Code of the technical information', choices=TYPES, max_length=6)
-    value = models.CharField('Code of the technical information', choices=TYPES, max_length=16)
+    crecord = models.ForeignKey(Crecord, related_name='xcrecord')
+    xrecord_ti = models.ForeignKey(Xrecord_ti)
+    value = models.CharField('Value for the technical information given', max_length=26, blank=True, null=True)
+
+    def __unicode__(self):
+        return u'Budget: %s, %s -> %s -- Value: %s' % (
+            self.crecord.gbudget.id, self.crecord.code, self.xrecord_ti.ti_code, self.value)
 
 
 #############################################################
+
+class Id_bim(models.Model):
+    id_bim = models.CharField('BIM identifier', max_length=200)
+
+    def __unicode__(self):
+        return u'ID_BIM: %s' % (self.id_bim)
+
+
 class Mrecord(models.Model):
     """
     ~M | [ CODIGO_PADRE \ ] CODIGO_HIJO | { POSICION \ } | MEDICION_TOTAL |
         { TIPO \ COMENTARIO { # ID_BIM } \ UNIDADES \ LONGITUD \ LATITUD \ ALTURA \ } | [ ETIQUETA ] |
     """
-    parent = models.ForeignKey(Crecord, related_name='parent_mrecord')
-    child = models.ForeignKey(Crecord, related_name='child_mrecord', blank=True, null=True)
-    pos = models.CharField('Position', max_length=30, blank=True, null=True)
+    parent = models.ForeignKey(Crecord, related_name='parent_mrecord', blank=True, null=True)
+    child = models.ForeignKey(Crecord, related_name='child_mrecord')
+    cpos = models.CharField('Chapter position', blank=True, null=True, max_length=30)
+    spos = models.CharField('SubChapter position', blank=True, null=True, max_length=30)
+    ipos = models.CharField('Budget item (partida) position', blank=True, null=True, max_length=30)
+    # pos = models.CharField('Position', max_length=30, blank=True, null=True)
     m_total = models.FloatField('Total measurement. Equals efficiency of Drecord')
     label = models.CharField('Etiqueta', blank=True, null=True, max_length=30)
+
+    def __unicode__(self):
+        p = '%s -> ' % self.parent if self.parent else ''
+        return u'Budget: %s, %s%s %s\%s\%s (%s)' % (self.child.gbudget.id, p, self.child.code, self.cpos, self.spos,
+                                                    self.ipos, self.m_total)
 
 
 class Mrecord_type(models.Model):
     """
     { TIPO \ COMENTARIO { # ID_BIM } \ UNIDADES \ LONGITUD \ LATITUD \ ALTURA \ }
     """
-    TYPES = ((1, 'Subtotal parcial'), (2, 'Subtotal acumulado'), (3, 'Expresión'))
+    TYPES = ((0, 'Empty'), (1, 'Subtotal parcial'), (2, 'Subtotal acumulado'), (3, 'Expresión'))
     mrecord = models.ForeignKey(Mrecord)
     type = models.IntegerField('Type', choices=TYPES, blank=True, null=True)
     comment = models.TextField('Comment or expression. Depending on TYPES', blank=True, null=True)
-    id_bim = models.CharField('BIM identifier', blank=True, null=True, max_length=200)
+    id_bims = models.ManyToManyField(Id_bim, blank=True)
     units = models.FloatField('Number of units', blank=True, null=True)
     longitude = models.FloatField('Longitude', blank=True, null=True)
     latitude = models.FloatField('Latitude', blank=True, null=True)
     height = models.FloatField('Height', blank=True, null=True)
+
+    def __unicode__(self):
+        return u'%s, units: %s, lon: %s, lat: %s, height: %s, ' % (self.mrecord, self.units, self.longitude,
+                                                                   self.latitude, self.height)
 
 
 #############################################################
@@ -386,14 +450,18 @@ class Arecord(models.Model):
     crecord = models.ForeignKey(Crecord)
     key = models.CharField('Thesaurus key', max_length=50)
 
+    def __unicode__(self):
+        return u'Budget: %s, %s -> key: %s' % (self.crecord.gbudget.id, self.crecord, self.key)
+
 
 #############################################################
-class Brecord(models.Model):
-    """
-    ~B | CODIGO_CONCEPTO | CODIGO_NUEVO |
-    """
-    crecord = models.ForeignKey(Crecord, related_name='bcrecord')
-    new_code = models.CharField('New code for concept', max_length=22)
+# class Brecord(models.Model):
+#     """
+#     ~B | CODIGO_CONCEPTO | CODIGO_NUEVO |
+#     """
+#     crecord = models.ForeignKey(Crecord, related_name='bcrecord')
+#     new_code = models.CharField('New code for concept', max_length=22)
+
 
 
 #############################################################
@@ -401,14 +469,23 @@ class Frecord(models.Model):
     """
     ~F | CODIGO_CONCEPTO | { TIPO \  { ARCHIVO.EXT ; } \ [ DESCRIPCION_ARCHIVO ] \ } | [URL_EXT] |
     """
+    crecord = models.ForeignKey(Crecord)
+    url = models.URLField('Relative url', blank=True, null=True)
+
+    def __unicode__(self):
+        return u'Budget: %s, %s -> url: %s' % (self.crecord.gbudget.id, self.crecord, self.url)
+
+class Frecord_files(models.Model):
     TYPES = ((0, 'Otros'), (1, 'Características técnicas y de fabricación'),
              (2, 'Manual de colocación, uso y mantenimiento'), (3, 'Certificado/s de elementos y sistemas'),
              (4, 'Normativa y bibliografía'), (5, 'Tarifa de precios'), (6, 'Condiciones de venta'),
              (7, 'Carta de colores'), (8, 'Ámbito de aplicación y criterios selección'),
              (9, 'Cálculo de elementos y sistemas'), (10, 'Presentación, datos generales, objetivos, etc. de empresa'),
              (11, 'Certificado/s de empresa'), (12, 'Obras realizadas'), (13, 'Imagen'))
-    crecord = models.ForeignKey(Crecord)
+    frecord = models.ForeignKey(Frecord)
     type = models.IntegerField('Type of file', choices=TYPES)
-    file = models.ForeignKey(Budget_file, related_name="brecord_file", blank=True)
+    files = models.ManyToManyField(Budget_file, related_name="frecord_file", blank=True)
     description = models.CharField('File description', blank=True, null=True, max_length=200)
-    url = models.URLField('Relative url', blank=True, null=True)
+
+    def __unicode__(self):
+        return u'%s, %s -> %s' % (self.frecord, self.type, self.description)

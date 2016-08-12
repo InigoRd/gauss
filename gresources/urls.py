@@ -17,9 +17,10 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^gprojects/', views.gprojects, name='gprojects'),
+    url(r'^human_resources/', views.human_resources, name='human_resources'),
+    # url(r'^gprojects/', views.gprojects, name='gprojects'),
     # url(r'^create_project/', views.create_project, name='create_project'),
-    url(r'^gprojects_ajax/', views.gprojects_ajax, name='gprojects_ajax'),
-    url(r'^gantt/(?P<gproject_id>[0-9]+)/$', views.gantt),
-    url(r'^gantt_ajax/', views.gantt_ajax, name='gantt_ajax')
+    # url(r'^gprojects_ajax/', views.gprojects_ajax, name='gprojects_ajax'),
+    # url(r'^gantt/(?P<gproject_id>[0-9]+)/$', views.gantt),
+    # url(r'^gantt_ajax/', views.gantt_ajax, name='gantt_ajax')
 ]
