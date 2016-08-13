@@ -9,7 +9,12 @@ admin.site.register(Vrecord)
 admin.site.register(Vrecord_label)
 admin.site.register(Krecord)
 admin.site.register(Krecord_scope)
-admin.site.register(Crecord)
+
+@admin.register(Crecord)
+class CrecordAdmin(admin.ModelAdmin):
+    list_filter = ('code', 'gbudget')
+
+# admin.site.register(Crecord)
 admin.site.register(Crecord_alias)
 admin.site.register(Crecord_price)
 admin.site.register(Drecord)

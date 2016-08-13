@@ -23,46 +23,46 @@ from models import *
 # Create your views here.
 
 def parseRecord(record, gbudget):
-    try:
-        if record[0] == '~V':
-            _parseV(record, gbudget)
-        elif record[0] == '~K':
-            _parseK(record, gbudget)
-        elif record[0] == '~C':
-            _parseC(record, gbudget)
-        elif record[0] == '~T':
-            _parseT(record, gbudget)
-        elif record[0] == '~D':
-            _parseD(record, gbudget)
-        elif record[0] == '~R':
-            _parseR(record, gbudget)
-        elif record[0] == '~L':
-            _parseL(record, gbudget)
-        elif record[0] == '~W':
-            _parseW(record, gbudget)
-        elif record[0] == '~Q':
-            _parseQ(record, gbudget)
-        elif record[0] == '~J':
-            _parseJ(record, gbudget)
-        elif record[0] == '~G':
-            _parseG(record, gbudget)
-        elif record[0] == '~E':
-            _parseE(record, gbudget)
-        elif record[0] == '~O':
-            _parseO(record, gbudget)
-        elif record[0] == '~X':
-            _parseX(record, gbudget)
-        elif record[0] == '~M':
-            _parseM(record, gbudget)
-        elif record[0] == '~A':
-            _parseA(record, gbudget)
-        elif record[0] == '~B':
-            _parseB(record, gbudget)
-        elif record[0] == '~F':
-            _parseF(record, gbudget)
-    except:
-        # warning('Error de lectura en el la línea %s' % "|".join(record)
-        pass
+    # try:
+    if record[0] == '~V':
+        _parseV(record, gbudget)
+    elif record[0] == '~K':
+        _parseK(record, gbudget)
+    elif record[0] == '~C':
+        _parseC(record, gbudget)
+    elif record[0] == '~T':
+        _parseT(record, gbudget)
+    elif record[0] == '~D':
+        _parseD(record, gbudget)
+    elif record[0] == '~R':
+        _parseR(record, gbudget)
+    elif record[0] == '~L':
+        _parseL(record, gbudget)
+    elif record[0] == '~W':
+        _parseW(record, gbudget)
+    elif record[0] == '~Q':
+        _parseQ(record, gbudget)
+    elif record[0] == '~J':
+        _parseJ(record, gbudget)
+    elif record[0] == '~G':
+        _parseG(record, gbudget)
+    elif record[0] == '~E':
+        _parseE(record, gbudget)
+    elif record[0] == '~O':
+        _parseO(record, gbudget)
+    elif record[0] == '~X':
+        _parseX(record, gbudget)
+    elif record[0] == '~M':
+        _parseM(record, gbudget)
+    elif record[0] == '~A':
+        _parseA(record, gbudget)
+    elif record[0] == '~B':
+        _parseB(record, gbudget)
+    elif record[0] == '~F':
+        _parseF(record, gbudget)
+    # except:
+    #    # warning('Error de lectura en el la línea %s' % "|".join(record)
+        # pass
 
 def gbudgets(request):
     guser = request.user
@@ -180,16 +180,35 @@ def _parseV(data, gbudget):
     except:
         owner = data[1]
         version_date = data[2].split('\\')
-        version = version_date[0]
-        date = _todate(version_date[1])
+        try:
+            version = version_date[0]
+            date = _todate(version_date[1])
+        except:
+            version = version_date[0]
+            date = None
         emisor = data[3]
         header = data[4].split('\\')[0]
         char_set = data[5]
-        comment = data[6]
-        type = int(data[7])
-        certification_number = int(data[8])
-        certification_date = _todate(data[9])  # datetime.strptime(data[9], '%d%m%Y').date()
-        url = data[10]
+        try:
+            comment = data[6]
+        except:
+            comment = ''
+        try:
+            type = int(data[7])
+        except:
+            type = 1
+        try:
+            certification_number = int(data[8])
+        except:
+            certification_number = None
+        try:
+            certification_date = _todate(data[9])  # datetime.strptime(data[9], '%d%m%Y').date()
+        except:
+            certification_date = None
+        try:
+            url = data[10]
+        except:
+            url = None
         vrecord = Vrecord.objects.create(gbudget=gbudget, owner=owner, version=version, date=date, emisor=emisor,
                                          header=header, char_set=char_set, comment=comment, type=type, url=url,
                                          certification_number=certification_number,
@@ -215,12 +234,42 @@ def _parseK(data, gbudget):
 
     krecord = Krecord.objects.get_or_create(gbudget=gbudget)[0]
     params2 = data[2].split('\\')
-    krecord.ci = float(params2[0])
-    krecord.gg = float(params2[1])
-    krecord.bi = float(params2[2])
-    krecord.baja = float(params2[3])
-    krecord.iva = float(params2[4])
-    krecord.save()
+    if len(params2) > 4:
+        krecord.ci = float(params2[0])
+        krecord.gg = float(params2[1])
+        krecord.bi = float(params2[2])
+        krecord.baja = float(params2[3])
+        krecord.iva = float(params2[4])
+        krecord.save()
+    elif len(params2) == 4:
+        krecord.ci = float(params2[0])
+        krecord.gg = float(params2[1])
+        krecord.bi = float(params2[2])
+        krecord.baja = float(params2[3])
+        krecord.iva = 21
+        krecord.save()
+    elif len(params2) == 3:
+        krecord.ci = float(params2[0])
+        krecord.gg = float(params2[1])
+        krecord.bi = float(params2[2])
+        krecord.baja = 0
+        krecord.iva = 21
+        krecord.save()
+    elif len(params2) == 2:
+        krecord.ci = float(params2[0])
+        krecord.gg = float(params2[1])
+        krecord.bi = 0
+        krecord.baja = 0
+        krecord.iva = 21
+        krecord.save()
+    else:
+        krecord.ci = float(params2[0])
+        krecord.gg = 0
+        krecord.bi = 0
+        krecord.baja = 0
+        krecord.iva = 21
+        krecord.save()
+
 
     vrecord_labels = Vrecord_label.objects.filter(vrecord__gbudget=gbudget).order_by('id')
     params1 = data[1].split('\\')
@@ -561,7 +610,7 @@ def _parseE(data, gbudget):
     type = several[0]
     subname = several[1]
     address = several[2]
-    cp = several[3]
+    cp = several[3] if several[3] else None
     location = several[4]
     province = several[5]
     country = several[6]
@@ -573,7 +622,7 @@ def _parseE(data, gbudget):
     email = data[5].split('\\')[2]
     Erecord.objects.create(gbudget=gbudget, code=code, summary=summary, name=name, type=type, subname=subname,
                            address=address, cp=cp, location=location, province=province, country=country,
-                           tel=tel, fax=fax, con=contact, cif=cif, web=web, email=email)
+                           tel=tel, fax=fax, contact=contact, cif=cif, web=web, email=email)
 
 
 def _parseO(data, gbudget):

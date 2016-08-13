@@ -166,8 +166,16 @@ class Crecord(models.Model):
     text = models.TextField('Concept description', blank=True, null=True)
 
     def __unicode__(self):
-        return u'Budget: %s, %s - %s (%s ...)' % (self.gbudget.id, self.code, self.hierarchy, self.summary[:50])
-        # return '%s' % (self.gbudget.id)
+        if self.summary:
+            if len(self.summary) > 50:
+                s = '%s...' % self.summary[:50]
+            else:
+                s = '%s' % self.summary
+        else:
+            s = 'No summary'
+        return u'Budget: %s, %s - (%s) %s' % (self.gbudget.id, self.code, self.get_hierarchy_display(), s)
+        #
+        # return '%s %s %s' % (self.gbudget.id, self.code, s)
 
 
 class Crecord_alias(models.Model):
