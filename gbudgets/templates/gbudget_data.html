@@ -1,108 +1,259 @@
 <div class="row">
-    <div class="columns large-9">
+    <div class="columns large-7">
         <div class="button-group">
-            <a class="button project_button" data-id="{{ gproject.id }}"
-               title="Elaborar el presupuesto de este proyecto"><i class="fa fa-paste"></i> Presupuesto</a>
-            <a class="button project_button" data-action="charter" data-id="{{ gproject.id }}"
-               title="Elaborar el 'project charter' del proyecto"><i class="fa fa-file-text"></i> Project charter</a>
-            <a class="button" href="/gantt/{{ gproject.id }}/"
-               title="Programación del proyecto a través del diagrama de Gantt"><i class="fa fa-tasks"></i> Gantt</a>
-            <a class="button project_button" data-action="repository" data-id="{{ gproject.id }}"
-               title="Ir al respositorio de documentos del proyecto"><i class="fa fa-folder-open"></i> Repositorio</a>
-            <a class="button remove_gproject alert" data-action="remove" data-id="{{ gproject.id }}"
-               title="Borrar el proyecto"><i class="fa fa-trash"></i> Borrar</a>
+            <a class="button copy_button" data-id="{{ gbudget.id }}"
+               title="Hacer una copia de este presupuesto/base de datos"><i class="fa fa-copy"></i> Copiar</a>
+            {% if gbudget.initial_bc3 %}
+                <a class="button gbudget_button" data-id="{{ gbudget.id }}"
+                   title="Descargar el BC3 original"><i class="fa fa-paste"></i> BC3 (Orig)</a>
+            {% endif %}
+            <a class="button gbudget_button" data-action="charter" data-id="{{ gbudget.id }}"
+               title="Generar el BC3 de este presupuesto/base de precios"><i class="fa fa-file-text"></i> BC3 (Gen)</a>
+            <a class="button" href="/gantt/{{ gbudget.id }}/"
+               title="Editar este presupuesto/base de precios"><i class="fa fa-pencil"></i> Editar</a>
+            <a class="button remove_gbudget alert" data-action="remove" data-id="{{ gbudget.id }}"
+               title="Borrar este presupuesto/base de precios"><i class="fa fa-trash"></i> Borrar</a>
         </div>
     </div>
-    <div class="columns large-3" style="position: relative;">
-        <input title="Fecha de comienzo del proyecto" type="text" name="start_date" class="start_date"
-               value="{{ gproject.start_date|date:'d-m-Y' }}" data-id="{{ gproject.id }}">
-            <span id="date_check" style="color:red;display: none;position: absolute;right: 5px;top: -10px;"><i
-                                    class="fa fa-check"></i></span>
+    <div class="columns large-5" style="position: relative;">
+        <small>Creado: {{ gbudget.created }} <br> Modificado: {{ gbudget.modified }}</small>
     </div>
 
 </div>
 <div class="row">
-    <div class="columns large-6">
-        <label>Nombre del proyecto: <span id="name_check" style="color:red;display: none;"><i
-                                    class="fa fa-check"></i></span>
-            <input type="text" name="name" id="name{{ gproject.id }}" class="name_gproject" value="{{ gproject.name }}"
-                   data-id="{{ gproject.id }}">
+    <div class="columns large-8">
+        <label>Nombre del presupuesto: <span id="title_check" style="color:red;display: none;"><i
+                class="fa fa-check"></i></span>
+            <input type="text" name="title" id="title{{ gbudget.id }}" class="title_gbudget" value="{{ gbudget.title }}"
+                   data-id="{{ gbudget.id }}">
         </label>
     </div>
     <div class="columns large-4">
         <label>Administrador: <span id="administrator_check" style="color:red;display: none;"><i
-                                    class="fa fa-check"></i></span>
-            <select name="administrator" id="administrator{{ gproject.id }}" data-id="{{ gproject.id }}">
-                <option value="{{ gproject.administrator.id }}">{{ gproject.administrator.last_name }}, {{ gproject.administrator.first_name }}</option>
+                class="fa fa-check"></i></span>
+            <select name="administrator" id="administrator{{ gbudget.id }}" data-id="{{ gbudget.id }}">
+                <option value="{{ gbudget.administrator.id }}">{{ gbudget.administrator.last_name }}, {{ gbudget.administrator.first_name }}</option>
             </select>
         </label>
     </div>
-    <div class="columns large-2">
-        <label>Realizándose:</label>
-        <div class="switch active_switch" data-id="{{ gproject.id }}">
-            <input class="switch-input" id="active{{ gproject.id }}" type="checkbox" data-id="{{ gproject.id }}"
-                   {% if gproject.active %}checked{% endif %}>
-            <label class="switch-paddle" for="active{{ gproject.id }}">
-                <span class="show-for-sr">Proyecto en proceso de ejecución</span>
-                <span class="switch-active" aria-hidden="true">Sí</span>
-                <span class="switch-inactive" aria-hidden="true">No</span>
-            </label>
-        </div>
-    </div>
 </div>
+
+{% if gbudget.initial_bc3 %}
+    <h5><b>Original general data</b></h5>
+    <div class="row">
+        <table>
+            <tr>
+                {% if gbudget.vrecord_set.all.0.owner %}
+                    <th>Owner</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.version %}
+                    <th>Version</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.date %}
+                    <th>Date</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.emisor %}
+                    <th>Emisor</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.char_set %}
+                    <th>Char set</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.header %}
+                    <th>Header</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.type %}
+                    <th>Type</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.certification_number %}
+                    <th>Certification number</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.certification_date %}
+                    <th>Certification date</th> {% endif %}
+                {% if gbudget.vrecord_set.all.0.url %}
+                    <th>url</th> {% endif %}
+            </tr>
+            <tr>
+                {% if gbudget.vrecord_set.all.0.owner %}
+                    <td>{{ gbudget.vrecord_set.all.0.owner }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.version %}
+                    <td>{{ gbudget.vrecord_set.all.0.version }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.date %}
+                    <td>{{ gbudget.vrecord_set.all.0.date }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.emisor %}
+                    <td>{{ gbudget.vrecord_set.all.0.emisor }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.char_set %}
+                    <td>{{ gbudget.vrecord_set.all.0.char_set }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.header %}
+                    <td>{{ gbudget.vrecord_set.all.0.header }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.type %}
+                    <td>{{ gbudget.vrecord_set.all.0.get_type_display }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.certification_number %}
+                    <td>{{ gbudget.vrecord_set.all.0.certification_number }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.certification_date %}
+                    <td>{{ gbudget.vrecord_set.all.0.certification_date }}</td> {% endif %}
+                {% if gbudget.vrecord_set.all.0.url %}
+                    <td>{{ gbudget.vrecord_set.all.0.url }}</td> {% endif %}
+            </tr>
+            {% if gbudget.vrecord_set.all.0.url %}
+                <tr>
+                    <td>{{ gbudget.vrecord_set.all.0.comment }}</td>
+                </tr>
+            {% endif %}
+        </table>
+    </div>
+    <div class="row">
+        <table>
+            <tr>
+                <th>CI</th>
+                <th>GG</th>
+                <th>BI</th>
+                <th>Baja</th>
+                <th>IVA</th>
+            </tr>
+            <tr>
+                <td>{{ gbudget.krecord_set.all.0.ci }}%</td>
+                <td>{{ gbudget.krecord_set.all.0.gg }}%</td>
+                <td>{{ gbudget.krecord_set.all.0.bi }}%</td>
+                <td>{{ gbudget.krecord_set.all.0.baja }}%</td>
+                <td>{{ gbudget.krecord_set.all.0.iva }}%</td>
+            </tr>
+        </table>
+    </div>
+    {% for ks in gbudget.krecord_set.all.0.scopes %}
+        <div class="row">
+            <table>
+                {% if ks.vrecord_label.title %}
+                    <tr title="Cantidad de decimales para precios, rendimientos, ...">
+                        <td colspan="13">{{ ks.vrecord_label.title }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="13">Cantidad de decimales para precios, rendimientos, ...</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <th>DRC</th>
+                    <th>DC</th>
+                    <th>DFS</th>
+                    <th>DRS</th>
+                    <th>DUO</th>
+                    <th>DI</th>
+                    <th>DES</th>
+                    <th>DN</th>
+                    <th>DD</th>
+                    <th>DS</th>
+                    <th>DSP</th>
+                    <th>DEC</th>
+                    <th>Divisa</th>
+                </tr>
+                <tr>
+                    <td>{{ ks.drc }}</td>
+                    <td>{{ ks.dc }}</td>
+                    <td>{{ ks.dfs }}</td>
+                    <td>{{ ks.drs }}</td>
+                    <td>{{ ks.duo }}</td>
+                    <td>{{ ks.di }}</td>
+                    <td>{{ ks.des }}</td>
+                    <td>{{ ks.dn }}</td>
+                    <td>{{ ks.dd }}</td>
+                    <td>{{ ks.ds }}</td>
+                    <td>{{ ks.dsp }}</td>
+                    <td>{{ ks.dec }}</td>
+                    <td>{{ ks.divisa }}</td>
+                </tr>
+            </table>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<ul class="vertical menu" data-accordion-menu>
+    <li>
+        <a href="#" style="font-variant: small-caps;"><b>{{ gbudget.root.0.code }} {{ gbudget.root.0.summary }}</b></a>
+        <ul class="menu vertical nested">
+            {% for d1 in gbudget.root.0.children %}
+                <li><a href="#" style="font-variant: small-caps;">{{ d1.child.code }} {{ d1.child.summary }}
+                    ({{ d1.factor }} - {{ d1.efficency }})</a>
+                    {% if d1.child.children %}
+                        <ul class="menu vertical nested">
+                            {% for d2 in d1.child.children %}
+                                <li><a href="#"
+                                       style="display: inline-block;font-variant: small-caps;">{{ d2.child.code }} {{ d2.child.summary }}
+                                    ({{ d2.factor }} - {{ d2.efficency }})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a> <span style="display: inline-block">hola</span>
+                                    {% if d2.child.children %}
+                                        <ul class="menu vertical nested">
+                                            {% for d3 in d2.child.children %}
+                                                <li><a href="#"
+                                                       style="font-variant: small-caps;">{{ d3.child.code }} {{ d3.child.summary }}
+                                                    ({{ d3.factor }} - {{ d3.efficency }})
+                                                </a>
+                                                    {% if d3.child.children %}
+                                                        <ul class="menu vertical nested">
+                                                            {% for d4 in d3.child.children %}
+                                                                <li><a href="#"
+                                                                       style="font-variant: small-caps;">{{ d4.child.code }} {{ d4.child.summary }}
+                                                                    ({{ d4.factor }}
+                                                                    - {{ d4.efficency }})
+                                                                </a>
+                                                                    {% if d4.child.children %}
+                                                                        <ul class="menu vertical nested">
+                                                                            {% for d5 in d4.child.children %}
+                                                                                <li><a href="#"
+                                                                                       style="font-variant: small-caps;">{{ d5.child.code }} {{ d5.child.summary }}
+                                                                                    ({{ d5.factor }}
+                                                                                    - {{ d5.efficency }})
+                                                                                </a></li>
+                                                                            {% endfor %}
+                                                                        </ul>{% endif %}</li>
+                                                            {% endfor %}
+                                                        </ul>{% endif %}</li>
+                                            {% endfor %}
+                                        </ul>{% endif %}</li>
+                            {% endfor %}
+                        </ul>{% endif %}</li>
+            {% endfor %}
+        </ul>
+    </li>
+</ul>
+
+
 <div class="row">
     <div class="columns large-12">
-        <label>Anotaciones para este proyecto: <span id="notes_check" style="color:red;display: none;"><i
-                                    class="fa fa-check"></i></span>
-            <textarea data-id="{{ gproject.id }}" name="notes" id="notes{{ gproject.id }}" class="gproject_notes"
-                      rows="10">{{ gproject.notes }}</textarea>
+        <label>Anotaciones para este presupuesto: <span id="notes_check" style="color:red;display: none;"><i
+                class="fa fa-check"></i></span>
+            <textarea data-id="{{ gbudget.id }}" name="notes" id="notes{{ gbudget.id }}" class="gbudget_notes"
+                      rows="10">{{ gbudget.notes }}</textarea>
         </label>
     </div>
 </div>
 
 <script>
-    $('.active_switch').foundation();
-
-    $('.start_date').fdatepicker({
-        language: 'es',
-        format: 'dd-mm-yyyy',
-        weekStart: 1
-    });
-
-    $('.start_date').change(function (e) {
+    $('body').on('click', '.copy_button', function (e) {
+        e.preventDefault();
         var id = $(this).data('id');
-        var start_date = $(this).val();
-        $.post("/gprojects_ajax/", {action: 'change_date', id: id, start_date: start_date}, function (data) {
-            $('#date_check').show().delay(1500).fadeOut();
+        console.log(id)
+        $.post("/gbudgets_ajax/", {action: 'copy_gbudget', id: id}, function (data) {
+            $('#gbudgets_accordion').append(data).foundation();
         });
     });
 
-    $('body').on('propertychange input', '.gproject_notes', function (e) {
+    $('body').on('propertychange input', '.gbudget_notes', function (e) {
         var id = $(this).data('id');
         var notes = $(this).val();
-        $.post("/gprojects_ajax/", {action: 'change_notes', id: id, notes: notes}, function (data) {
-                $('#notes_check').show().delay(1500).fadeOut();
+        $.post("/gbudgets_ajax/", {action: 'change_notes', id: id, notes: notes}, function (data) {
+            $('#notes_check').show().delay(1500).fadeOut();
         });
     });
 
-    $('body').on('propertychange input', '.name_gproject', function (e) {
+    $('body').on('propertychange input', '.title_gbudget', function (e) {
         var id = $(this).data('id');
-        var name = $(this).val();
-        $.post("/gprojects_ajax/", {action: 'change_name', id: id, name: name}, function (data) {
-            $('#gproject_name' + id).html(data);
-            $('#name_check').show().delay(1500).fadeOut();
+        var title = $(this).val();
+        $.post("/gbudgets_ajax/", {action: 'change_title', id: id, title: title}, function (data) {
+            $('#gbudget_title' + id).html(data);
+            $('#title_check').show().delay(1500).fadeOut();
         });
     });
 
-    $('body').on('change', '#administrator{{ gproject.id }}', function (e) {
+    $('body').on('change', '#administrator{{ gbudget.id }}', function (e) {
         var id = $(this).data('id');
         var value = $(this).val();
-        $.post("/gprojects_ajax/", {action: 'change_administrator', id: id, administrator: value}, function (data) {
+        $.post("/gbudgets_ajax/", {action: 'change_administrator', id: id, administrator: value}, function (data) {
             $('#administrator_check').show().delay(1500).fadeOut();
         });
     });
 
-    $("#administrator{{ gproject.id }}").select2({
+    $("#administrator{{ gbudget.id }}").select2({
         theme: "foundation",
         placeholder: "Escribe parte del nombre",
         minimumInputLength: 3,

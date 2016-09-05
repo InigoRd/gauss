@@ -12,7 +12,8 @@ admin.site.register(Krecord_scope)
 
 @admin.register(Crecord)
 class CrecordAdmin(admin.ModelAdmin):
-    list_filter = ('code', 'gbudget')
+    list_filter = ('gbudget',)
+    search_fields = ['code']
 
 # admin.site.register(Crecord)
 admin.site.register(Crecord_alias)

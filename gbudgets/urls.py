@@ -18,6 +18,7 @@ from . import views
 
 urlpatterns = [
     url(r'^gbudgets/', views.gbudgets, name='gbudgets'),
+    url(r'^gbudgets_ajax/', views.gbudgets_ajax, name='gbudgets_ajax'),
     # url(r'^create_project/', views.create_project, name='create_project'),
     # url(r'^gprojects_ajax/', views.gprojects_ajax, name='gprojects_ajax'),
     # url(r'^gantt/(?P<gproject_id>[0-9]+)/$', views.gantt),

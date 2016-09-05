@@ -2,6 +2,30 @@
 GAUSSProject
 
 */
+.resource_column_check {
+    border: none;
+    display: inline-block;
+    width: 20px;
+    resize: none;
+    height: 28px;
+    overflow: hidden;
+}
+
+.resource_column {
+    border: 1px solid #eeeeee;
+    display: inline-block;
+    width: 120px;
+    text-align: left;
+    resize: horizontal;
+    height: 28px;
+    overflow: hidden;
+}
+
+
+
+
+
+
 
 .time_line {
     border: 1px solid #eeeeee;
@@ -76,15 +100,6 @@ GAUSSProject
     -moz-user-select: none;
     -moz-user-select: -moz-none;
     box-shadow: 0 0 5px #299cb4;
-}
-
-.gantt_list_column {
-    border: 1px solid #eeeeee;
-    display: inline-block;
-    /*width: 100px;*/
-    resize: horizontal;
-    height: 28px;
-    overflow: hidden;
 }
 
 .gantt_header_column {

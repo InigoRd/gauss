@@ -22,6 +22,376 @@ from models import *
 
 # Create your views here.
 
+
+def duplicate_budget(gbudget):
+    old_id = gbudget.pk
+    gbudget.pk = None
+    gbudget.title = gbudget.title + ' (copia)'
+    gbudget.initial_bc3 = None
+    gbudget.final_bc3 = None
+    gbudget.save()
+    old_gb = Gbudget.objects.get(pk=old_id)
+
+    vrecords = Vrecord.objects.filter(gbudget=old_gb)
+    dict_vrecords = {}
+    for v in vrecords:
+        id = v.pk
+        v.pk = None
+        v.gbudget = gbudget
+        v.save()
+        dict_vrecords[id] = v
+
+    vrecord_labels = Vrecord_label.objects.filter(vrecord__gbudget=old_gb)
+    dict_vrecord_labels = {}
+    for vl in vrecord_labels:
+        id = vl.pk
+        vl.pk = None
+        vl.vrecord = dict_vrecords[vl.vrecord.pk]
+        vl.save()
+        dict_vrecord_labels[id] = vl
+
+    krecords = Krecord.objects.filter(gbudget=old_gb)
+    dict_krecords = {}
+    for k in krecords:
+        id = k.pk
+        k.pk = None
+        k.gbudget = gbudget
+        k.save()
+        dict_krecords[id] = k
+
+    krecord_scopes = Krecord_scope.objects.filter(krecord__gbudget=old_gb)
+    for ks in krecord_scopes:
+        ks.pk = None
+        ks.krecord = dict_krecords[ks.krecord.pk]
+        ks.vrecord_label = dict_vrecord_labels[ks.vrecord_label.pk]
+        ks.save()
+    
+    crecords = Crecord.objects.filter(gbudget=old_gb)
+    dict_crecords = {}
+    for c in crecords:
+        crecord_alias = Crecord_alias.objects.filter(crecord=c)
+        crecord_prices = Crecord_price.objects.filter(crecord=c)
+        id = c.pk
+        c.pk = None
+        c.gbudget = gbudget
+        c.save()
+        dict_crecords[id] = c
+        for va in crecord_alias:
+            va.pk = None
+            va.crecord = c
+            va.save()
+        for vp in crecord_prices:
+            vp.pk = None
+            vp.crecord = c
+            vp.vrecord_label = dict_vrecord_labels[vp.vrecord_label.pk]
+            vp.save()
+
+    drecords = Drecord.objects.filter(gbudget=old_gb)
+    for d in drecords:
+        drecord_percentages = Drecord_percentage_code.objects.filter(drecord=d)
+        d.pk = None
+        d.gbudget = gbudget
+        d.parent = dict_crecords[d.parent.pk]
+        d.child = dict_crecords[d.child.pk]
+        d.save()
+        for dp in drecord_percentages:
+            dp.pk = None
+            dp.drecord = d
+            dp.save()
+
+    rrecords = Rrecord.objects.filter(gbudget=old_gb)
+    for r in rrecords:
+        rrecord_properties = Rrecord_property.objects.filter(rrecord=r)
+        r.pk = None
+        r.gbudget = gbudget
+        r.parent = dict_crecords[r.parent.pk]
+        r.child = dict_crecords[r.child.pk]
+        r.save()
+        for rp in rrecord_properties:
+            rp.pk = None
+            rp.rrecord = r
+            rp.save()
+
+    wrecords = Wrecord.objects.filter(gbudget=old_gb)
+    dict_wrecords = {}
+    for w in wrecords:
+        id = w.pk
+        w.pk = None
+        w.gbudget = gbudget
+        w.save()
+        dict_wrecords[id] = w
+
+    lrecords = Lrecord.objects.filter(gbudget=old_gb)
+    dict_lrecords = {}
+    for l in lrecords:
+        lrecord_sections = Lrecord_section.objects.filter(lrecord=l)
+        id = l.pk
+        l.pk = None
+        l.gbudget = gbudget
+        l.save()
+        dict_lrecords[id] = l
+        for ls in lrecord_sections:
+            ls.pk = None
+            ls.lrecord = l
+            ls.save()
+    
+    qrecords = Qrecord.objects.filter(crecord__gbudget=old_gb)
+    dict_qrecords = {}
+    for q in qrecords:
+        id = q.pk
+        q.pk = None
+        q.crecord = dict_crecords[q.crecord.pk]
+        q.lrecord = dict_lrecords[q.lrecord.pk]
+        q.save()
+        dict_qrecords[id] = q
+        
+    jrecords = Jrecord.objects.filter(qrecord__crecord__gbudget=old_gb)
+    for j in jrecords:
+        j.pk = None
+        j.qrecord = dict_qrecords[j.qrecord.pk]
+        j.save()
+        
+    grecords = Grecord.objects.filter(crecord__gbudget=old_gb)
+    for g in grecords:
+        g.pk = None
+        g.crecord = dict_crecords[g.crecord.pk]
+        g.save()
+    
+    erecords = Erecord.objects.filter(gbudget=old_gb)
+    for e in erecords:
+        e.pk = None
+        e.gbudget = gbudget
+        e.save()
+    
+    xrecord_tis = Xrecord_ti.objects.filter(gbudget=old_gb)
+    dict_xrecord_tis = {}
+    for xt in xrecord_tis:
+        id = xt.pk
+        xt.pk = None
+        xt.gbudget = gbudget
+        xt.save()
+        dict_xrecord_tis[id] = xt
+
+    xrecords = Xrecord.objects.filter(xrecord_ti__gbudget=old_gb)
+    for x in xrecords:
+        x.pk = None
+        x.xrecord_ti = dict_xrecord_tis[x.xrecord_ti.pk]
+        x.crecord = dict_crecords[x.crecord.pk]
+        x.save()
+
+    mrecords = Mrecord.objects.filter(child__gbudget=old_gb)
+    dict_mrecords = {}
+    for m in mrecords:
+        id = m.pk
+        m.pk = None
+        m.parent = dict_crecords[m.parent.pk] if m.parent.pk else None
+        m.child = dict_crecords[m.child.pk]
+        m.save()
+        dict_mrecords[id] = m
+
+    mrecord_types = Mrecord_type.objects.filter(mrecord__child__gbudget=old_gb)
+    for mt in mrecord_types:
+        mt.pk = None
+        mt.mrecord = dict_mrecords[mt.mrecord.pk]
+        mt.save()
+
+    arecords = Arecord.objects.filter(crecord__gbudget=old_gb)
+    for a in arecords:
+        a.pk = None
+        a.crecord = dict_crecords[a.crecord.pk]
+        a.save()
+
+    frecords = Frecord.objects.filter(crecord__gbudget=old_gb)
+    dict_frecords = {}
+    for f in frecords:
+        id = f.pk
+        f.pk = None
+        f.crecord = dict_crecords[f.crecord.pk]
+        f.save()
+        dict_frecords[id] = f
+
+    frecord_files = Frecord_files.objects.filter(frecord__crecord__gbudget=old_gb)
+    for f in frecord_files:
+        f.pk = None
+        f.frecord = dict_frecords[f.frecord.pk]
+        f.save()
+
+    return gbudget
+
+
+
+
+
+from django.db.models.deletion import Collector
+from django.db.models.fields.related import ForeignKey
+
+
+def duplicate(obj, value=None, field=None, duplicate_order=None):
+    """
+    Duplicate all related objects of obj setting
+    field to value. If one of the duplicate
+    objects has an FK to another duplicate object
+    update that as well. Return the duplicate copy
+    of obj.
+    duplicate_order is a list of models which specify how
+    the duplicate objects are saved. For complex objects
+    this can matter. Check to save if objects are being
+    saved correctly and if not just pass in related objects
+    in the order that they should be saved.
+    """
+    collector = Collector({})
+    collector.collect([obj])
+    collector.sort()
+    related_models = collector.data.keys()
+    data_snapshot = {}
+    for key in collector.data.keys():
+        data_snapshot.update(
+            {key: dict(zip([item.pk for item in collector.data[key]], [item for item in collector.data[key]]))})
+    root_obj = None
+
+    # Sometimes it's good enough just to save in reverse deletion order.
+    if duplicate_order is None:
+        duplicate_order = reversed(related_models)
+
+    for model in duplicate_order:
+        # Find all FKs on model that point to a related_model.
+        fks = []
+        for f in model._meta.fields:
+            if isinstance(f, ForeignKey) and f.rel.to in related_models:
+                fks.append(f)
+        # Replace each `sub_obj` with a duplicate.
+        if model not in collector.data:
+            continue
+        sub_objects = collector.data[model]
+        for obj in sub_objects:
+            for fk in fks:
+                fk_value = getattr(obj, "%s_id" % fk.name)
+                # If this FK has been duplicated then point to the duplicate.
+                fk_rel_to = data_snapshot[fk.rel.to]
+                if fk_value in fk_rel_to:
+                    dupe_obj = fk_rel_to[fk_value]
+                    setattr(obj, fk.name, dupe_obj)
+            # Duplicate the object and save it.
+            obj.id = None
+            if field is not None:
+                setattr(obj, field, value)
+            obj.save()
+            if root_obj is None:
+                root_obj = obj
+    return root_obj
+
+
+def gbudgets_ajax(request):
+    guser = request.user
+    gbudget = Gbudget.objects.get(Q(id=request.POST['id']), Q(gusers_edit__in=[guser]) | Q(administrator=guser))
+    if request.is_ajax() and gbudget:
+        if request.POST['action'] == 'budget_data':
+            html = render_to_string('gbudget_data.html', {'gbudget': gbudget})
+            return HttpResponse(html)
+        elif request.POST['action'] == 'change_title':
+            gbudget.title = request.POST['title']
+            gbudget.save()
+            return HttpResponse(gbudget.title)
+        elif request.POST['action'] == 'change_administrator':
+            gbudget.administrator = Guser.objects.get(id=request.POST['administrator'])
+            gbudget.save()
+            return HttpResponse(gbudget.title)
+        elif request.POST['action'] == 'copy_gbudget':
+            new_budget = duplicate_budget(gbudget)
+            # vrecords = gbudget.vrecord_set.all()
+            # vrecord_labels = gbudget.vrecord
+            # vrecords = gbudget.vrecord_set.all()
+            # vrecords = gbudget.vrecord_set.all()
+            # vrecords = gbudget.vrecord_set.all()
+            # vrecords = gbudget.vrecord_set.all()
+            # gbudget.pk = None
+            # gbudget.title = gbudget.title + ' (copy)'
+            # gbudget.save()
+            data = render_to_string('gbudget_accordion.html', {'gbudget': new_budget})
+            return HttpResponse(data)
+        elif request.POST['action'] == 'change_notes':
+            gbudget.notes = request.POST['notes']
+            gbudget.save()
+            return HttpResponse(gbudget.notes)
+        elif request.POST['action'] == 'remove':
+            gbudget.removed = True
+            gbudget.save()
+            return HttpResponse(True)
+
+
+def gbudgets(request):
+    guser = request.user
+    data = ''
+    try:
+        gbudget_id = request.GET['id']
+    except:
+        gbudget_id = None
+    if request.method == 'POST':
+        if request.POST['action'] == 'load_bc3':
+            if 'bc3' in request.FILES:
+                # Firstly, the Budget_file instance is created
+                bc3_file = request.FILES['bc3']
+                budget_file = Budget_file.objects.create(file=bc3_file, content_type=bc3_file.content_type,
+                                                         description="Fichero BC3 cargado")
+                gbudget = Gbudget.objects.create(gentity=guser.gentity, title='New budget created from a bc3 file',
+                                                 administrator=guser, initial_bc3=budget_file)
+                # Secondly, the file is uploaded to /media/budgets/ path
+                fnombre = budget_file.file.url
+                with open(MEDIA_PATH + fnombre, 'w+') as destination:
+                    for chunk in bc3_file.chunks():
+                        destination.write(chunk)
+                # Last, the file is processed
+                complete_line = ''
+                with open(MEDIA_PATH + fnombre, "r") as bc3:
+                    current_line = bc3.readline().rstrip('\r\n ')  # remove linebreak and spaces
+                    while True:
+                        next_line = bc3.readline()
+                        if not next_line:
+                            record = current_line.split('|')
+                            parseRecord(record, gbudget)
+                            break
+                        elif next_line[0] == '~':
+                            record = current_line.split('|')
+                            current_line = next_line.rstrip('\r\n ')
+                            parseRecord(record, gbudget)
+                        else:
+                            current_line += next_line.rstrip('\r\n ')
+
+
+
+
+        elif request.POST['action'] == 'create_budget':
+            gbudget = Gbudget.objects.create(gentity=request.user.gentity, active=True, name='Nuevo proyecto',
+                                             administrator=request.user, notes='', start_date=datetime.today())
+            # start_datetime = datetime.combine(gbudget.start_date, datetime.min.time())
+            # Gbaseline.objects.create(gbudget=gbudget, name='First baseline', start_date = start_datetime)
+
+    # gresources = Gresource.objects.filter(guser=request.user)
+    # gbudgets = Gbudget.objects.filter(Q(removed=False),
+    #                                     Q(gresources__in=gresources) | Q(administrator=request.user) | Q(
+    #                                         gusers_edit__in=[request.user])).distinct().order_by('-active',
+    #                                                                                              'start_date')
+    gbudgets = Gbudget.objects.filter(Q(removed=False),
+                                      Q(administrator=request.user) | Q(
+                                          gusers_edit__in=[request.user])).distinct().order_by('-modified')
+
+    return render_to_response("gbudgets.html",
+                              {
+                                  'actions':
+                                      ({'name': 'plus', 'text': 'Nuevo', 'href': '/create_project/',
+                                        'title': 'Crear un nuevo proyecto', 'permission': 'create_projects'},
+                                       {'name': 'check', 'text': 'Aceptar', 'href': '/create_project/',
+                                        'title': 'Crear un nuevo proyecto', 'permission': 'create_projects'},
+                                       {'name': 'check', 'text': 'Aceptar', 'permission': 'create_projects',
+                                        'title': '', 'type': 'button'},
+                                       ),
+                                  'gbudgets': gbudgets,
+                                  'gbudget_id': gbudget_id,
+                                  'data': data
+                              },
+                              context_instance=RequestContext(request))
+
+
 def parseRecord(record, gbudget):
     # try:
     if record[0] == '~V':
@@ -60,82 +430,9 @@ def parseRecord(record, gbudget):
         _parseB(record, gbudget)
     elif record[0] == '~F':
         _parseF(record, gbudget)
-    # except:
-    #    # warning('Error de lectura en el la línea %s' % "|".join(record)
+        # except:
+        #    # warning('Error de lectura en el la línea %s' % "|".join(record)
         # pass
-
-def gbudgets(request):
-    guser = request.user
-    data = ''
-    try:
-        gbudget_id = request.GET['id']
-    except:
-        gbudget_id = None
-    if request.method == 'POST':
-        if request.POST['action'] == 'load_bc3':
-            if 'bc3' in request.FILES:
-                # Firstly, the Budget_file instance is created
-                bc3_file = request.FILES['bc3']
-                budget_file = Budget_file.objects.create(file=bc3_file, content_type=bc3_file.content_type,
-                                                         description="Fichero BC3 cargado")
-                gbudget = Gbudget.objects.create(gentity=guser.gentity, title='New budget created from a bc3 file',
-                                                 administrator=guser, initial_bc3=budget_file)
-                # Secondly, the file is uploaded to /media/budgets/ path
-                fnombre = budget_file.file.url
-                with open(MEDIA_PATH + fnombre, 'w+') as destination:
-                    for chunk in bc3_file.chunks():
-                        destination.write(chunk)
-                # Last, the file is processed
-                complete_line = ''
-                with open(MEDIA_PATH + fnombre, "r") as bc3:
-                    current_line = bc3.readline().rstrip('\r\n ') #remove linebreak and spaces
-                    while True:
-                        next_line = bc3.readline()
-                        if not next_line:
-                            record = current_line.split('|')
-                            parseRecord(record, gbudget)
-                            break
-                        elif next_line[0] == '~':
-                            record = current_line.split('|')
-                            current_line = next_line.rstrip('\r\n ')
-                            parseRecord(record, gbudget)
-                        else:
-                            current_line += next_line.rstrip('\r\n ')
-
-
-
-
-        elif request.POST['action'] == 'create_budget':
-            gbudget = Gbudget.objects.create(gentity=request.user.gentity, active=True, name='Nuevo proyecto',
-                                             administrator=request.user, notes='', start_date=datetime.today())
-            # start_datetime = datetime.combine(gbudget.start_date, datetime.min.time())
-            # Gbaseline.objects.create(gbudget=gbudget, name='First baseline', start_date = start_datetime)
-
-    # gresources = Gresource.objects.filter(guser=request.user)
-    # gbudgets = Gbudget.objects.filter(Q(removed=False),
-    #                                     Q(gresources__in=gresources) | Q(administrator=request.user) | Q(
-    #                                         gusers_edit__in=[request.user])).distinct().order_by('-active',
-    #                                                                                              'start_date')
-    gbudgets = Gbudget.objects.filter(Q(removed=False),
-                                      Q(administrator=request.user) | Q(
-                                          gusers_edit__in=[request.user])).distinct().order_by('-active',
-                                                                                               'start_date')
-
-    return render_to_response("gbudgets.html",
-                              {
-                                  'actions':
-                                      ({'name': 'plus', 'text': 'Nuevo', 'href': '/create_project/',
-                                        'title': 'Crear un nuevo proyecto', 'permission': 'create_projects'},
-                                       {'name': 'check', 'text': 'Aceptar', 'href': '/create_project/',
-                                        'title': 'Crear un nuevo proyecto', 'permission': 'create_projects'},
-                                       {'name': 'check', 'text': 'Aceptar', 'permission': 'create_projects',
-                                        'title': '', 'type': 'button'},
-                                       ),
-                                  'gbudgets': gbudgets,
-                                  'gbudget_id': gbudget_id,
-                                  'data': data
-                              },
-                              context_instance=RequestContext(request))
 
 
 def _todate(data):
@@ -269,7 +566,6 @@ def _parseK(data, gbudget):
         krecord.baja = 0
         krecord.iva = 21
         krecord.save()
-
 
     vrecord_labels = Vrecord_label.objects.filter(vrecord__gbudget=gbudget).order_by('id')
     params1 = data[1].split('\\')

@@ -19,20 +19,20 @@
         </div>
         <div class="row">
             <div class="columns large-12">
-                <ul class="accordion" data-accordion data-allow-all-closed="true">
-{#                    {% for gbudget in gbudgets %}#}
+                <ul class="accordion" data-accordion data-allow-all-closed="true" id="gbudgets_accordion">
+                    {% for gbudget in gbudgets %}
 {#                        <li class="accordion-item" data-accordion-item id="accordion{{ gbudget.id }}">#}
 {#                            <a href="#" class="accordion-title accordion_head"#}
 {#                               data-id="{{ gbudget.id }}"><i id="lock_{{ gbudget.id }}"#}
 {#                                   class="fa {% if gbudget.removed %}fa-unlock{% else %}fa-lock{% endif %}"></i>#}
-{#                                &nbsp;&nbsp;&nbsp;<span id="gbudget_name{{ gbudget.id }}">{{ gbudget.name }}</span>#}
+{#                                &nbsp;&nbsp;&nbsp;<span id="gbudget_title{{ gbudget.id }}">{{ gbudget.title }}</span>#}
 {#                            </a>#}
 {#                            <div class="accordion-content" data-tab-content id="accordion_content{{ gbudget.id }}">#}
 {#                            </div>#}
 {#                        </li>#}
-{#                    {% endfor %}#}
+                        {% include "gbudget_accordion.html" %}
+                    {% endfor %}
                 </ul>
-                {{ data }}
             </div>
         </div>
 
@@ -50,7 +50,7 @@
             e.preventDefault();
             var id = $(this).data('id');
             $.post("/gbudgets_ajax/", {action: 'budget_data', 'id': id}, function (data) {
-                $('#accordion_content' + id).html(data);
+                $('#accordion_content' + id).html(data).foundation();
             });
         });
 

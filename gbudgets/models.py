@@ -37,8 +37,16 @@ class Gbudget(models.Model):
     gusers_edit = models.ManyToManyField(Guser, blank=True, related_name='can_edit_gbudget')
     initial_bc3 = models.ForeignKey(Budget_file, blank=True, null=True, related_name='initial')
     final_bc3 = models.ForeignKey(Budget_file, blank=True, null=True, related_name='final')
+    notes = models.TextField('Description/Explanation of the budget', blank=True, null=True)
     created = models.DateTimeField('Created', auto_now_add=True)
     modified = models.DateTimeField('Last modification', auto_now=True)
+
+    @property
+    def root(self):
+        return Crecord.objects.filter(gbudget=self, hierarchy=0)
+    @property
+    def chapters(self):
+        return Crecord.objects.filter(gbudget=self, hierarchy=1)
 
     def __unicode__(self):
         return u'%s - %s (%s)' % (self.gentity, self.title, self.created)
@@ -113,6 +121,10 @@ class Krecord(models.Model):
     baja = models.FloatField('Percentage BAJA', default=1)
     iva = models.FloatField('Percentage IVA', default=21)
 
+    @property
+    def scopes(self):
+        return Krecord_scope.objects.filter(krecord=self)
+
     class Meta:
         ordering = ['gbudget']
 
@@ -164,6 +176,10 @@ class Crecord(models.Model):
     type = models.CharField('Type of concept', blank=True, null=True, max_length=10)
     # ~T | CODIGO_CONCEPTO |  TEXTO_DESCRIPTIVO  |
     text = models.TextField('Concept description', blank=True, null=True)
+
+    @property
+    def children(self):
+        return Drecord.objects.filter(parent=self).order_by('child__code')
 
     def __unicode__(self):
         if self.summary:
@@ -292,8 +308,8 @@ class Lrecord_section(models.Model):
     lrecord = models.ForeignKey(Lrecord, related_name='lrecord')
     crecord = models.ForeignKey(Crecord, related_name='crecord')
     text = models.TextField('Text asigned to the Scope stament section by de concept', blank=True, null=True)
-    rtf_file = models.ForeignKey(Budget_file, related_name="lrecord_rtf_file", blank=True)
-    htm_file = models.ForeignKey(Budget_file, related_name="lrecord_htm_file", blank=True)
+    rtf_file = models.ForeignKey(Budget_file, related_name="lrecord_rtf_file", blank=True, null=True)
+    htm_file = models.ForeignKey(Budget_file, related_name="lrecord_htm_file", blank=True, null=True)
 
     def __unicode__(self):
         return u'%s, Concept: %s (%s ...)' % (self.lrecord, self.crecord.code, self.text[:30])
@@ -318,8 +334,8 @@ class Jrecord(models.Model):
     """
     qrecord = models.ForeignKey(Qrecord)
     paragraph_text = models.TextField('Text of the paragraph', blank=True, null=True)
-    rtf_file = models.ForeignKey(Budget_file, related_name="jrecord_rtf_file", blank=True)
-    htm_file = models.ForeignKey(Budget_file, related_name="jrecord_htm_file", blank=True)
+    rtf_file = models.ForeignKey(Budget_file, related_name="jrecord_rtf_file", blank=True, null=True)
+    htm_file = models.ForeignKey(Budget_file, related_name="jrecord_htm_file", blank=True, null=True)
 
 
 #############################################################
@@ -328,7 +344,7 @@ class Grecord(models.Model):
     ~G | CODIGO_CONCEPTO | < ARCHIVO_GRAFICO.EXT \ > | [URL_EXT] |
     """
     crecord = models.ForeignKey(Crecord)
-    file = models.ForeignKey(Budget_file, related_name="grecord_file", blank=True)
+    file = models.ForeignKey(Budget_file, related_name="grecord_file", blank=True, null=True)
     url = models.CharField("Relative url to file", blank=True, null=True, max_length=60)
 
 
